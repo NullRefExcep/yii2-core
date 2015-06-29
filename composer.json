@@ -1,0 +1,16 @@
+{
+    "name": "nullref/yii2-core",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": ">=2.0.0",
+        "rmrevin/yii2-fontawesome": "2.10.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "nullref\\core\\": "src/"
+        }
+    }
+}
