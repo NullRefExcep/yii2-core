@@ -1,16 +1,38 @@
-<?php 
+<?php
 
 namespace nullref\core\components;
 
+use yii\base\Component;
+use yii\db\Connection;
+use yii\di\Instance;
+
 /**
-* 
-*/
-class ModuleInstaller
+ *
+ */
+class ModuleInstaller extends Component
 {
-	public function installModule($id)
-	{
-		//@TODO impelemnt installation
-	}
+    /**
+     * @var Connection|array|string
+     */
+    protected $db = 'db';
+
+    public function init()
+    {
+        parent::init();
+        $this->db = Instance::ensure($this->db, Connection::className());
+        $this->db->getSchema()->refresh();
+    }
+
+    public function install()
+    {
+        //do some stuff
+    }
+
+    public function uninstall()
+    {
+        //do some stuff
+    }
 }
+
 
 
