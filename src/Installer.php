@@ -2,23 +2,37 @@
 
 namespace nullref\core;
 
-use Composer\Installer\LibraryInstaller;
-use Composer\Package\PackageInterface;
-use Composer\Repository\InstalledRepositoryInterface;
 
+use Composer\Installer\PackageEvent;
+use nullref\core\components\ModuleInstaller;
 
-class Installer extends LibraryInstaller
+class Installer extends ModuleInstaller
 {
+
+    public function install(PackageEvent $event)
+    {
+        $this->downloadComposer();
+        parent::install($event);
+    }
+
+    public function uninstall(PackageEvent $event)
+    {
+        $path = $this->getComposerPath();
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+        parent::uninstall($event);
+    }
+
     protected function downloadComposer()
     {
         $url = 'https://getcomposer.org/composer.phar';
-        $path =  'composer.phar';
-        file_put_contents($path, file_get_contents($url));
+        file_put_contents($this->getComposerPath(), file_get_contents($url));
     }
 
-    public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
+    protected function getComposerPath()
     {
-        parent::install($repo, $package);
+        return 'composer.phar';
     }
 
 }
