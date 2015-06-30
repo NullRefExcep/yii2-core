@@ -15,7 +15,7 @@
         }
     },
     "scripts": {
-        "post-package-install": "nullref\\core\\Installer::install",
+        "post-install-cmd": "nullref\\core\\Installer::install",
         "pre-package-uninstall": "nullref\\core\\Installer::uninstall"
     }
 }
