@@ -4,17 +4,15 @@ namespace nullref\core;
 
 use yii\base\Application;
 use yii\base\BootstrapInterface;
+use yii\base\Module as BaseModule;
 use yii\console\Application as ConsoleApplication;
 
 /**
  * @author    Dmytro Karpovych
  * @copyright 2015 NRE
- * @license   http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
-class Module extends \yii\base\Module implements BootstrapInterface
+class Module extends BaseModule implements BootstrapInterface
 {
-    public $layout = 'main';
-
     /**
      * @return string
      */
@@ -30,23 +28,11 @@ class Module extends \yii\base\Module implements BootstrapInterface
      */
     public function bootstrap($app)
     {
-        \Yii::$app->setComponents(['admin' => [
-            'class' => 'yii\web\User',
-            'identityClass' => 'app\models\User',
-        ]]);
-
         if ($app instanceof ConsoleApplication) {
             $app->controllerMap['module'] = [
                 'class' => 'nullref\core\console\ModuleController',
             ];
         }
     }
-
-    public function init()
-    {
-        $this->setLayoutPath('@vendor/nullref/yii2-core/src/views/layouts');
-        parent::init();
-    }
-
 
 }

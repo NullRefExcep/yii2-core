@@ -2,7 +2,7 @@
 
 namespace nullref\core\interfaces;
 
-interface IModuleble 
+interface IAdminModule
 {
 	public function getAdminMenu();
 }
