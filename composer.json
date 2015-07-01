@@ -11,9 +11,5 @@
         "psr-4": {
             "nullref\\core\\": "src/"
         }
-    },
-    "scripts": {
-        "post-install-cmd": "nullref\\core\\Installer::install",
-        "pre-package-uninstall": "nullref\\core\\Installer::uninstall"
     }
 }
