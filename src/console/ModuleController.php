@@ -21,12 +21,8 @@ class ModuleController extends Controller
 
     public function actionInstall($name)
     {
-        $namespace = 'nullref/yii2-' . $name;
-        $installerClassName = '\\nullref\\' . $name . '\\Installer';
-        if (isset(\Yii::$app->extensions[$namespace])) {
-            if (class_exists($installerClassName)) {
-                /** @var ModuleInstaller $installer */
-                $installer = \Yii::createObject($installerClassName, ['db' => $this->db]);
+        if ($this->moduleExists($name)) {
+            if (($installer = $this->getInstaller($name)) !== null) {
                 $installer->install();
                 echo 'Module module was installed successfully.' . PHP_EOL;
             } else {
@@ -38,22 +34,63 @@ class ModuleController extends Controller
     }
 
 
+    /**
+     * @param $name
+     */
     public function actionUninstall($name)
     {
-
-        $namespace = 'nullref/yii2-' . $name;
-        $installerClassName = '\\nullref\\' . $name . '\\Installer';
-        if (isset(\Yii::$app->extensions[$namespace])) {
-            if (class_exists($installerClassName)) {
-                /** @var ModuleInstaller $installer */
-                $installer = \Yii::createObject($installerClassName, ['db' => $this->db]);
+        if ($this->moduleExists($name)) {
+            if (($installer = $this->getInstaller($name)) !== null) {
                 $installer->uninstall();
-                echo 'Module module was installed successfully.' . PHP_EOL;
+                echo 'Module module was uninstalled successfully.' . PHP_EOL;
             } else {
                 echo 'Module installer don\'t found.' . PHP_EOL;
             }
         } else {
             echo 'Module don\'t found.' . PHP_EOL;
         }
+    }
+
+    /**
+     * @param $name
+     */
+    public function actionReinstall($name)
+    {
+        if ($this->moduleExists($name)) {
+            if (($installer = $this->getInstaller($name)) !== null) {
+                $installer->uninstall();
+                $installer->install();
+                echo 'Module module was reinstalled successfully.' . PHP_EOL;
+            } else {
+                echo 'Module installer don\'t found.' . PHP_EOL;
+            }
+        } else {
+            echo 'Module don\'t found.' . PHP_EOL;
+        }
+    }
+
+    /**
+     * @param $name
+     * @return null|ModuleInstaller
+     * @throws \yii\base\InvalidConfigException
+     */
+    protected function getInstaller($name)
+    {
+        $installerClassName = '\\nullref\\' . $name . '\\Installer';
+        if (class_exists($installerClassName)) {
+            return \Yii::createObject($installerClassName, ['db' => $this->db]);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    protected function moduleExists($name)
+    {
+        $namespace = 'nullref/yii2-' . $name;
+        return isset(\Yii::$app->extensions[$namespace]);
     }
 } 
