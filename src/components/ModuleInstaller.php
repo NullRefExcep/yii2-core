@@ -5,17 +5,20 @@ namespace nullref\core\components;
 use yii\base\Component;
 use yii\db\Connection;
 use yii\di\Instance;
-use Composer\Installer\PackageEvent;
 
 /**
- *
+ * @property string $moduleId
  */
-class ModuleInstaller extends Component
+abstract class ModuleInstaller extends Component
 {
     /**
      * @var Connection|array|string
      */
     public $db = 'db';
+
+    public abstract function getModuleId();
+
+    public $updateConfig = true;
 
     public function init()
     {
@@ -26,12 +29,16 @@ class ModuleInstaller extends Component
 
     public function install()
     {
-        //do some stuff
+        if ($this->updateConfig) {
+            $this->addToConfig();
+        }
     }
 
     public function uninstall()
     {
-        //do some stuff
+        if ($this->updateConfig) {
+            $this->removeFromConfig();
+        }
     }
 
     /**
@@ -62,6 +69,86 @@ class ModuleInstaller extends Component
     public function createTable($table, $columns, $options = null)
     {
         $this->db->createCommand()->createTable($table, $columns, $options)->execute();
+    }
+
+
+    /**
+     * Add module item to config
+     */
+    protected function addToConfig()
+    {
+        $path = $this->getConfigPath();
+        $config = require($path);
+
+        $config[$this->moduleId] = $this->getConfigArray();
+
+        $this->writeConfigFile($config);
+    }
+
+    /**
+     * @return array
+     */
+    protected function getConfigArray()
+    {
+        return ['class' => str_replace('Installer', 'Module', static::class)];
+    }
+
+    /**
+     * Remove module item from config
+     */
+    protected function removeFromConfig()
+    {
+        $path = $this->getConfigPath();
+        $config = require($path);
+
+        if (isset($config[$this->moduleId])) {
+            unset($config[$this->moduleId]);
+        }
+        $this->writeConfigFile($config);
+    }
+
+    /**
+     * Write config file
+     * @param $var
+     */
+    protected function writeConfigFile($var)
+    {
+        file_put_contents($this->getConfigPath(), '<?php' . PHP_EOL . 'return ' . $this->varExport($var) . ';');
+    }
+
+    /**
+     * @return bool|string
+     */
+    protected function getConfigPath()
+    {
+        return \Yii::getAlias('@app/config/modules.php');
+    }
+
+    /**
+     * var_export as php 5.4
+     * @param $var
+     * @param string $indent
+     * @return mixed|string
+     */
+    protected function varExport($var, $indent = "")
+    {
+        switch (gettype($var)) {
+            case "string":
+                return '"' . addcslashes($var, "\\\$\"\r\n\t\v\f") . '"';
+            case "array":
+                $indexed = array_keys($var) === range(0, count($var) - 1);
+                $r = [];
+                foreach ($var as $key => $value) {
+                    $r[] = "$indent    "
+                        . ($indexed ? "" : $this->varExport($key) . " => ")
+                        . $this->varExport($value, "$indent    ");
+                }
+                return "[\n" . implode(",\n", $r) . $indent . "\n    ]";
+            case "boolean":
+                return $var ? "true" : "false";
+            default:
+                return var_export($var, true);
+        }
     }
 }
 

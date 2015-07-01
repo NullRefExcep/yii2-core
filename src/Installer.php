@@ -3,25 +3,30 @@
 namespace nullref\core;
 
 
-use Composer\Installer\PackageEvent;
 use nullref\core\components\ModuleInstaller;
 
 class Installer extends ModuleInstaller
 {
+    public $moduleId = 'core';
 
-    public function install(PackageEvent $event)
+    public function getModuleId()
     {
-        $this->downloadComposer();
-        parent::install($event);
+        return 'core';
     }
 
-    public function uninstall(PackageEvent $event)
+    public function install()
+    {
+        $this->downloadComposer();
+        parent::install();
+    }
+
+    public function uninstall()
     {
         $path = $this->getComposerPath();
         if (file_exists($path)) {
             @unlink($path);
         }
-        parent::uninstall($event);
+        parent::uninstall();
     }
 
     protected function downloadComposer()
