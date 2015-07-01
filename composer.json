@@ -5,9 +5,7 @@
     "minimum-stability": "dev",
     "require": {
         "php": ">=5.4.0",
-        "yiisoft/yii2": ">=2.0.0",
-        "rmrevin/yii2-fontawesome": ">=2.10.0",
-        "bower-asset/startbootstrap-sb-admin-2": "dev-master"
+        "yiisoft/yii2": ">=2.0.4"
     },
     "autoload": {
         "psr-4": {
