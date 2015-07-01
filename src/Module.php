@@ -4,6 +4,7 @@ namespace nullref\core;
 
 use yii\base\Application;
 use yii\base\BootstrapInterface;
+use yii\console\Application as ConsoleApplication;
 
 /**
  * @author    Dmytro Karpovych
@@ -33,7 +34,12 @@ class Module extends \yii\base\Module implements BootstrapInterface
             'class' => 'yii\web\User',
             'identityClass' => 'app\models\User',
         ]]);
-        //@TODO register autoload function for composer
+
+        if ($app instanceof ConsoleApplication) {
+            $app->controllerMap['module'] = [
+                'class' => 'nullref\core\console\ModuleController',
+            ];
+        }
     }
 
     public function init()

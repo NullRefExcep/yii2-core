@@ -24,12 +24,12 @@ class ModuleInstaller extends Component
         $this->db->getSchema()->refresh();
     }
 
-    public function install(PackageEvent $event)
+    public function install()
     {
         //do some stuff
     }
 
-    public function uninstall(PackageEvent $event)
+    public function uninstall()
     {
         //do some stuff
     }
