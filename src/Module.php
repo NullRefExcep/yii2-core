@@ -6,6 +6,7 @@ use yii\base\Application;
 use yii\base\BootstrapInterface;
 use yii\base\Module as BaseModule;
 use yii\console\Application as ConsoleApplication;
+use yii\web\Application as WebApplication;
 
 /**
  * @author    Dmytro Karpovych
@@ -28,11 +29,15 @@ class Module extends BaseModule implements BootstrapInterface
      */
     public function bootstrap($app)
     {
+        if ($app instanceof WebApplication) {
+            $app->setComponents([
+                'view' => ['class' => 'nullref\core\components\View'],
+            ]);
+        }
         if ($app instanceof ConsoleApplication) {
             $app->controllerMap['module'] = [
                 'class' => 'nullref\core\console\ModuleController',
             ];
         }
     }
-
 }
