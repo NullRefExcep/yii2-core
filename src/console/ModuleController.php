@@ -36,4 +36,24 @@ class ModuleController extends Controller
             echo 'Module don\'t found.' . PHP_EOL;
         }
     }
+
+
+    public function actionUninstall($name)
+    {
+
+        $namespace = 'nullref/yii2-' . $name;
+        $installerClassName = '\\nullref\\' . $name . '\\Installer';
+        if (isset(\Yii::$app->extensions[$namespace])) {
+            if (class_exists($installerClassName)) {
+                /** @var ModuleInstaller $installer */
+                $installer = \Yii::createObject($installerClassName, ['db' => $this->db]);
+                $installer->uninstall();
+                echo 'Module module was installed successfully.' . PHP_EOL;
+            } else {
+                echo 'Module installer don\'t found.' . PHP_EOL;
+            }
+        } else {
+            echo 'Module don\'t found.' . PHP_EOL;
+        }
+    }
 } 
