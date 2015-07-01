@@ -15,7 +15,7 @@ class ModuleInstaller extends Component
     /**
      * @var Connection|array|string
      */
-    protected $db = 'db';
+    public $db = 'db';
 
     public function init()
     {

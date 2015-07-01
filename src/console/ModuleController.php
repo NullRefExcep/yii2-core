@@ -12,6 +12,8 @@ use yii\console\Controller;
  */
 class ModuleController extends Controller
 {
+    public $db = 'db';
+
     public function actionIndex()
     {
         $this->run('/help', ['module']);
@@ -20,17 +22,18 @@ class ModuleController extends Controller
     public function actionInstall($name)
     {
         $namespace = 'nullref/yii2-' . $name;
-        $installerClassName = '\\nullref\\' . $name . '\\Installer.php';
+        $installerClassName = '\\nullref\\' . $name . '\\Installer';
         if (isset(\Yii::$app->extensions[$namespace])) {
             if (class_exists($installerClassName)) {
                 /** @var ModuleInstaller $installer */
-                $installer = \Yii::createObject($installerClassName);
+                $installer = \Yii::createObject($installerClassName, ['db' => $this->db]);
                 $installer->install();
+                echo 'Module module was installed successfully.' . PHP_EOL;
             } else {
-                echo 'Module installer don\'t found' . PHP_EOL;
+                echo 'Module installer don\'t found.' . PHP_EOL;
             }
         } else {
-            echo 'Module don\'t found' . PHP_EOL;
+            echo 'Module don\'t found.' . PHP_EOL;
         }
     }
 } 
