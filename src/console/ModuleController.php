@@ -20,10 +20,17 @@ class ModuleController extends Controller
     public function actionInstall($name)
     {
         $namespace = 'nullref/yii2-' . $name;
-        $module = \Yii::$app->extensions[$namespace];
         $installerClassName = '\\nullref\\' . $name . '\\Installer.php';
-        /** @var ModuleInstaller $installer */
-        $installer = \Yii::createObject($installerClassName);
-        $installer->install();
+        if (isset(\Yii::$app->extensions[$namespace])) {
+            if (class_exists($installerClassName)) {
+                /** @var ModuleInstaller $installer */
+                $installer = \Yii::createObject($installerClassName);
+                $installer->install();
+            } else {
+                echo 'Module installer don\'t found' . PHP_EOL;
+            }
+        } else {
+            echo 'Module don\'t found' . PHP_EOL;
+        }
     }
 } 
