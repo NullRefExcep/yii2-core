@@ -150,7 +150,21 @@ abstract class ModuleInstaller extends Component
                 return var_export($var, true);
         }
     }
+
+    protected function createFile($alias, $override = true)
+    {
+        $path = \Yii::getAlias($alias);
+        if (file_exists($path) && $override) {
+            @unlink($path);
+        }
+        touch($path);
+    }
+
+    protected function deleteFile($alias)
+    {
+        $path = \Yii::getAlias($alias);
+        if (file_exists($path)) {
+            @unlink($path);
+        }
+    }
 }
-
-
-
