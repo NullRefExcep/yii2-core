@@ -4,5 +4,5 @@ namespace nullref\core\interfaces;
 
 interface IAdminModule
 {
-	public function getAdminMenu();
+	public static function getAdminMenu();
 }
