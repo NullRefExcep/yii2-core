@@ -10,12 +10,31 @@ namespace nullref\core\components;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\db\Connection;
 
 class EntityManager extends Component
 {
     public $modelClass = '';
     public $queryClass = '';
     public $searchModelClass = '';
+    /** @var string|Connection */
+    public $db = '';
+
+    public $typification = false;
+    public $typeField = 'type';
+    public $type = null;
+
+
+    public static function getConfig($namespace, $modelName, $config = [])
+    {
+        $default = [
+            'class' => static::className(),
+            'modelClass' => $namespace . $modelName,
+            'queryClass' => $namespace . $modelName . 'Query',
+            'searchModelClass' => $namespace . 'Search' . $modelName,
+        ];
+        return array_merge($default, $config);
+    }
 
     /**
      * @throws InvalidConfigException
@@ -32,8 +51,10 @@ class EntityManager extends Component
         if (empty($this->searchModelClass)) {
             throw new InvalidConfigException('You must set search model class');
         }
+        if (isset($this->type)) {
+            $this->typification = true;
+        }
     }
-
 
     /**
      * @return object
@@ -41,7 +62,12 @@ class EntityManager extends Component
      */
     public function createModel()
     {
-        return Yii::createObject($this->modelClass);
+        $model = Yii::createObject($this->modelClass);
+
+        if ($this->typification) {
+            $model->{$this->typeField} = $this->type;
+        }
+        return $model;
     }
 
     /**
@@ -59,21 +85,40 @@ class EntityManager extends Component
      */
     public function createSearchModel()
     {
-        return \Yii::createObject($this->searchModelClass);
+        $model = Yii::createObject($this->searchModelClass);
+
+        if ($this->typification) {
+            $model->{$this->typeField} = $this->type;
+        }
+        return $model;
     }
 
     public function findOne($condition)
     {
-        return call_user_func(array($this->modelClass, 'findOne'), [$condition]);
+        if ($this->typification) {
+            //$condition = array_merge($condition, [$this->typeField => $this->type]);
+        }
+        return call_user_func([$this->modelClass, 'findOne'], [$condition]);
     }
 
-    public function findAll($condition)
+    public function findAll($condition = [])
     {
-        return call_user_func(array($this->modelClass, 'findAll'), [$condition]);
+        if ($this->typification) {
+            $condition = array_merge($condition, [$this->typeField => $this->type]);
+        }
+        return call_user_func([$this->modelClass, 'findAll'], [$condition]);
     }
 
-    public function find($condition)
+    public function find($condition = [])
     {
-        return call_user_func(array($this->modelClass, 'find'), [$condition]);
+        if ($this->typification) {
+            $condition = array_merge($condition, [$this->typeField => $this->type]);
+        }
+        return call_user_func([$this->modelClass, 'find'], [$condition]);
+    }
+
+    public function tableName()
+    {
+        return call_user_func([$this->modelClass, 'tableName']);
     }
 }
