@@ -79,8 +79,15 @@ abstract class ModuleInstaller extends Component
     {
         $path = $this->getConfigPath();
         $config = require($path);
+        if (isset($config[$this->moduleId])) {
+            if (\Yii::$app->controller->confirm('Rewrite exist config?')) {
+                $config[$this->moduleId] = $this->getConfigArray();
+                echo 'Module config was rewrote' . PHP_EOL;
+            }
+        } else {
+            $config[$this->moduleId] = $this->getConfigArray();
+        }
 
-        $config[$this->moduleId] = $this->getConfigArray();
 
         $this->writeConfigFile($config);
     }
