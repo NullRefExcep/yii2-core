@@ -7,12 +7,15 @@ namespace nullref\core\components;
  * @copyright 2015 NRE
  */
 
+use nullref\core\interfaces\IEntityManager;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
+use yii\db\ActiveQueryInterface;
 use yii\db\Connection;
+use yii\helpers\ArrayHelper;
 
-class EntityManager extends Component
+class EntityManager extends Component implements IEntityManager
 {
     public $modelClass = '';
     public $queryClass = '';
@@ -95,9 +98,6 @@ class EntityManager extends Component
 
     public function findOne($condition)
     {
-        if ($this->typification) {
-            //$condition = array_merge($condition, [$this->typeField => $this->type]);
-        }
         return call_user_func([$this->modelClass, 'findOne'], [$condition]);
     }
 
@@ -109,12 +109,35 @@ class EntityManager extends Component
         return call_user_func([$this->modelClass, 'findAll'], [$condition]);
     }
 
+    /**
+     * @param array $condition
+     * @return ActiveQueryInterface
+     */
     public function find($condition = [])
     {
         if ($this->typification) {
             $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
         return call_user_func([$this->modelClass, 'find'], [$condition]);
+    }
+
+    /**
+     * @param string $index
+     * @param string $value
+     * @param array $condition
+     * @param bool $asArray
+     * @return array
+     */
+    public function getMap($index = 'id', $value = 'title', $condition = [], $asArray = true)
+    {
+        $query = static::find()->andWhere($condition);
+        if ($this->typification) {
+            $query->andWhere([$this->typeField => $this->type]);
+        }
+        if ($asArray) {
+            $query->asArray();
+        }
+        return ArrayHelper::map($query->all(), $index, $value);
     }
 
     public function tableName()
