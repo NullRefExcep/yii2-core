@@ -11,5 +11,8 @@
         "psr-4": {
             "nullref\\core\\": "src/"
         }
+    },
+    "extra": {
+        "bootstrap":"nullref\\core\\Module"
     }
 }

@@ -128,7 +128,7 @@ abstract class ModuleInstaller extends Component
      */
     protected function getConfigPath()
     {
-        return \Yii::getAlias('@app/config/modules.php');
+        return \Yii::getAlias('@app/config/installed_modules.php');
     }
 
     /**
