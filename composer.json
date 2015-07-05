@@ -13,6 +13,6 @@
         }
     },
     "extra": {
-        "bootstrap":"nullref\\core\\Module"
+        "bootstrap":"nullref\\core\\Bootstrap"
     }
 }

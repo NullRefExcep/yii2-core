@@ -2,17 +2,13 @@
 
 namespace nullref\core;
 
-use yii\base\Application;
-use yii\base\BootstrapInterface;
 use yii\base\Module as BaseModule;
-use yii\console\Application as ConsoleApplication;
-use yii\web\Application as WebApplication;
 
 /**
  * @author    Dmytro Karpovych
  * @copyright 2015 NRE
  */
-class Module extends BaseModule implements BootstrapInterface
+class Module extends BaseModule
 {
     /**
      * @return string
@@ -23,21 +19,4 @@ class Module extends BaseModule implements BootstrapInterface
         return dirname(dirname(dirname(dirname(__DIR__))));
     }
 
-    /**
-     * Bootstrap method to be called during application bootstrap stage.
-     * @param Application $app the application currently running
-     */
-    public function bootstrap($app)
-    {
-        if ($app instanceof WebApplication) {
-            $app->setComponents([
-                'view' => ['class' => 'nullref\core\components\View'],
-            ]);
-        }
-        if ($app instanceof ConsoleApplication) {
-            $app->controllerMap['module'] = [
-                'class' => 'nullref\core\console\ModuleController',
-            ];
-        }
-    }
 }
