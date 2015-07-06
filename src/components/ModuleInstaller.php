@@ -61,6 +61,16 @@ abstract class ModuleInstaller extends Component
     }
 
     /**
+     * @param $table
+     * @param $column
+     * @param $type
+     */
+    public function addColumn($table, $column, $type)
+    {
+        $this->db->createCommand()->addColumn($table, $column, $type)->execute();
+    }
+
+    /**
      * Create table by name, columns and options
      * @param $table
      * @param $columns

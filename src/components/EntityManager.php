@@ -12,6 +12,7 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\db\ActiveQueryInterface;
+use yii\db\ActiveRecord;
 use yii\db\Connection;
 use yii\helpers\ArrayHelper;
 
@@ -60,7 +61,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @return object
+     * @return ActiveRecord
      * @throws \yii\base\InvalidConfigException
      */
     public function createModel()
@@ -98,7 +99,7 @@ class EntityManager extends Component implements IEntityManager
 
     public function findOne($condition)
     {
-        return call_user_func([$this->modelClass, 'findOne'], [$condition]);
+        return call_user_func([$this->getModelClass(), 'findOne'], [$condition]);
     }
 
     public function findAll($condition = [])
@@ -106,7 +107,7 @@ class EntityManager extends Component implements IEntityManager
         if ($this->typification) {
             $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
-        return call_user_func([$this->modelClass, 'findAll'], [$condition]);
+        return call_user_func([$this->getModelClass(), 'findAll'], [$condition]);
     }
 
     /**
@@ -118,7 +119,7 @@ class EntityManager extends Component implements IEntityManager
         if ($this->typification) {
             $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
-        return call_user_func([$this->modelClass, 'find'], [$condition]);
+        return call_user_func([$this->getModelClass(), 'find'], [$condition]);
     }
 
     /**
@@ -142,6 +143,18 @@ class EntityManager extends Component implements IEntityManager
 
     public function tableName()
     {
-        return call_user_func([$this->modelClass, 'tableName']);
+        return call_user_func([$this->getModelClass(), 'tableName']);
     }
+
+    /**
+     * @return string
+     */
+    public function getModelClass()
+    {
+        if (is_array($this->modelClass) && isset($this->modelClass['class'])) {
+            return $this->modelClass['class'];
+        }
+        return $this->modelClass;
+    }
+
 }

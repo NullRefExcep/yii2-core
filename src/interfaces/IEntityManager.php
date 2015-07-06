@@ -10,6 +10,12 @@ namespace nullref\core\interfaces;
 interface IEntityManager
 {
     public function createModel();
+
+    public function createSearchModel();
+
     public function findOne($condition);
+
     public function findAll();
+
+    public function getModelClass();
 }

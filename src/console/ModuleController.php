@@ -33,6 +33,20 @@ class ModuleController extends Controller
         }
     }
 
+    public function actionUpdate($name)
+    {
+        if ($this->moduleExists($name)) {
+            if (($installer = $this->getInstaller($name)) !== null) {
+                $installer->update();
+                echo 'Module module was updated successfully.' . PHP_EOL;
+            } else {
+                echo 'Module installer don\'t found.' . PHP_EOL;
+            }
+        } else {
+            echo 'Module don\'t found.' . PHP_EOL;
+        }
+    }
+
 
     /**
      * @param $name
