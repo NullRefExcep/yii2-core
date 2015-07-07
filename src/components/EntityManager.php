@@ -10,6 +10,7 @@ namespace nullref\core\components;
 use nullref\core\interfaces\IEntityManager;
 use Yii;
 use yii\base\Component;
+use yii\base\Event;
 use yii\base\InvalidConfigException;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
@@ -48,6 +49,16 @@ class EntityManager extends Component implements IEntityManager
         parent::init();
         if (empty($this->modelClass)) {
             throw new InvalidConfigException('You must set model class');
+        }
+        if (is_array($this->modelClass) && isset($this->modelClass['class']) && isset($this->modelClass['relations'])) {
+            foreach ($this->modelClass['relations'] as $id => $config) {
+                Event::on($this->modelClass['class'], ActiveRecord::EVENT_INIT, function (Event $e) use ($id, $config) {
+                    /** @var Component $model */
+                    $model = $e->sender;
+                    $model->attachBehavior($id, $config);
+                });
+            }
+            unset($this->modelClass['relations']);
         }
         if (empty($this->queryClass)) {
             throw new InvalidConfigException('You must set query class');

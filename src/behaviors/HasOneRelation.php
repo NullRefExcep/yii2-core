@@ -23,12 +23,14 @@ abstract class HasOneRelation extends Behavior implements IEntityManageble
 
     public abstract function getFieldName();
 
-    public abstract function getKeyName();
+    public abstract function getAttributeName();
+
+    public abstract function getAttributeLabel();
 
     public function __call($name, $params)
     {
         if ($name == 'get' . ucfirst($this->getFieldName())) {
-            return $this->owner->hasOne($this->getManager()->getModelClass(), ['id' => $this->getKeyName()]);
+            return $this->owner->hasOne($this->getManager()->getModelClass(), ['id' => $this->getAttributeName()]);
         }
         parent::__call($name, $params);
     }
