@@ -19,9 +19,9 @@ use yii\helpers\ArrayHelper;
 
 class EntityManager extends Component implements IEntityManager
 {
-    public $modelClass = '';
-    public $queryClass = '';
-    public $searchModelClass = '';
+    public $model = '';
+    public $query = '';
+    public $searchModel = '';
     /** @var string|Connection */
     public $db = '';
 
@@ -34,9 +34,9 @@ class EntityManager extends Component implements IEntityManager
     {
         $default = [
             'class' => static::className(),
-            'modelClass' => $namespace . $modelName,
-            'queryClass' => $namespace . $modelName . 'Query',
-            'searchModelClass' => $namespace . 'Search' . $modelName,
+            'model' => $namespace . $modelName,
+            'query' => $namespace . $modelName . 'Query',
+            'searchModel' => $namespace . $modelName . 'Search',
         ];
         return array_merge($default, $config);
     }
@@ -47,23 +47,23 @@ class EntityManager extends Component implements IEntityManager
     public function init()
     {
         parent::init();
-        if (empty($this->modelClass)) {
+        if (empty($this->model)) {
             throw new InvalidConfigException('You must set model class');
         }
-        if (is_array($this->modelClass) && isset($this->modelClass['class']) && isset($this->modelClass['relations'])) {
-            foreach ($this->modelClass['relations'] as $id => $config) {
-                Event::on($this->modelClass['class'], ActiveRecord::EVENT_INIT, function (Event $e) use ($id, $config) {
+        if (is_array($this->model) && isset($this->model['class']) && isset($this->model['relations'])) {
+            foreach ($this->model['relations'] as $id => $config) {
+                Event::on($this->model['class'], ActiveRecord::EVENT_INIT, function (Event $e) use ($id, $config) {
                     /** @var Component $model */
                     $model = $e->sender;
                     $model->attachBehavior($id, $config);
                 });
             }
-            unset($this->modelClass['relations']);
+            unset($this->model['relations']);
         }
-        if (empty($this->queryClass)) {
+        if (empty($this->query)) {
             throw new InvalidConfigException('You must set query class');
         }
-        if (empty($this->searchModelClass)) {
+        if (empty($this->searchModel)) {
             throw new InvalidConfigException('You must set search model class');
         }
         if (isset($this->type)) {
@@ -77,7 +77,7 @@ class EntityManager extends Component implements IEntityManager
      */
     public function createModel()
     {
-        $model = Yii::createObject($this->modelClass);
+        $model = Yii::createObject($this->model);
 
         if ($this->typification) {
             $model->{$this->typeField} = $this->type;
@@ -91,7 +91,7 @@ class EntityManager extends Component implements IEntityManager
      */
     public function createQuery()
     {
-        return Yii::createObject($this->queryClass);
+        return Yii::createObject($this->query);
     }
 
     /**
@@ -100,7 +100,7 @@ class EntityManager extends Component implements IEntityManager
      */
     public function createSearchModel()
     {
-        $model = Yii::createObject($this->searchModelClass);
+        $model = Yii::createObject($this->searchModel);
 
         if ($this->typification) {
             $model->{$this->typeField} = $this->type;
@@ -162,10 +162,21 @@ class EntityManager extends Component implements IEntityManager
      */
     public function getModelClass()
     {
-        if (is_array($this->modelClass) && isset($this->modelClass['class'])) {
-            return $this->modelClass['class'];
+        if (is_array($this->model) && isset($this->model['class'])) {
+            return $this->model['class'];
         }
-        return $this->modelClass;
+        return $this->model;
+    }
+
+    /**
+     * @return string
+     */
+    public function getQueryClass()
+    {
+        if (is_array($this->query) && isset($this->query['class'])) {
+            return $this->query['class'];
+        }
+        return $this->query;
     }
 
 }

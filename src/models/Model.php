@@ -27,7 +27,7 @@ class Model extends ActiveRecord
         $labels = [];
         foreach ($this->behaviors as $behavior) {
             if ($behavior instanceof HasOneRelation) {
-                $fields[$behavior->getAttributeName()] = $behavior->getAttributeLabel();
+                $labels[$behavior->getAttributeName()] = $behavior->getAttributeLabel();
             }
         }
         return array_merge(parent::attributeLabels(), $labels);
