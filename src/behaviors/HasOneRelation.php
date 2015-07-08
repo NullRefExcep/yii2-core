@@ -17,15 +17,9 @@ use yii\db\ActiveRecord;
  * @property ActiveRecord $owner
  * @property Category $category
  */
-abstract class HasOneRelation extends Behavior implements IEntityManageble
+abstract class HasOneRelation extends HasRelation
 {
-    use EntityManageble;
-
     public abstract function getFieldName();
-
-    public abstract function getAttributeName();
-
-    public abstract function getAttributeLabel();
 
     public function __call($name, $params)
     {

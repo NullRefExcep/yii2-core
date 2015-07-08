@@ -2,8 +2,13 @@
 
 namespace nullref\core\components;
 
+use nullref\core\behaviors\HasManyRelation;
+use nullref\core\behaviors\HasOneRelation;
+use nullref\core\Module;
+use Yii;
 use yii\base\Component;
 use yii\db\Connection;
+use yii\db\Schema;
 use yii\di\Instance;
 
 /**
@@ -51,6 +56,11 @@ abstract class ModuleInstaller extends Component
         return $this->db->schema->getTableSchema($tableName, true) !== null;
     }
 
+    public function hasColumn($tableName, $columnName)
+    {
+        return ($this->tableExist($tableName) && isset($this->db->schema->getTableSchema($tableName, true)->columns[$columnName]));
+    }
+
     /**
      * Builds and executes a SQL statement for dropping a DB table.
      * @param string $table the table to be dropped. The name will be properly quoted by the method.
@@ -64,9 +74,17 @@ abstract class ModuleInstaller extends Component
      * @param $table
      * @param $column
      * @param $type
+     * @param bool $override
      */
-    public function addColumn($table, $column, $type)
+    public function addColumn($table, $column, $type, $override = false)
     {
+        if ($this->hasColumn($table, $column)) {
+            if ($override) {
+                $this->db->createCommand()->dropColumn($table, $column)->execute();
+            } else {
+                return;
+            }
+        }
         $this->db->createCommand()->addColumn($table, $column, $type)->execute();
     }
 
@@ -107,7 +125,7 @@ abstract class ModuleInstaller extends Component
      */
     protected function getConfigArray()
     {
-        return ['class' => str_replace('Installer', 'Module', static::class)];
+        return ['class' => str_replace('Installer', 'Module', get_called_class())];
     }
 
     /**
@@ -182,6 +200,46 @@ abstract class ModuleInstaller extends Component
         $path = \Yii::getAlias($alias);
         if (file_exists($path)) {
             @unlink($path);
+        }
+    }
+
+    /**
+     * Add column for category relation if entity has it
+     */
+    public function update()
+    {
+        $module = Yii::$app->getModule($this->moduleId);
+        /** @var Module $module */
+        foreach ($module->getComponents() as $id => $component) {
+            if (is_array($component)) {
+                $component = $module->get($id);
+            }
+            if ($component instanceof EntityManager) {
+                $model = $component->createModel();
+                foreach ($model->behaviors as $behavior) {
+                    if ($behavior instanceof HasOneRelation) {
+                        $this->addColumn($model->tableName(), $behavior->getAttributeName(), Schema::TYPE_INTEGER);
+                    }
+                }
+                foreach ($model->behaviors as $behavior) {
+                    if ($behavior instanceof HasManyRelation) {
+                        if (!$this->tableExist($behavior->getTableName())) {
+                            $this->createTable($behavior->getTableName(), [
+                                $behavior->getToFieldName() => Schema::TYPE_INTEGER,
+                                $behavior->getFromFieldName() => Schema::TYPE_INTEGER,
+                            ]);
+                            $this->db->createCommand()
+                                ->addPrimaryKey($behavior->getFromFieldName() . $behavior->getToFieldName(),
+                                    $behavior->getTableName(), [
+                                        $behavior->getToFieldName(),
+                                        $behavior->getFromFieldName()
+                                    ])
+                                ->execute();
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
