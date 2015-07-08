@@ -19,34 +19,22 @@ class ModuleController extends Controller
         $this->run('/help', ['module']);
     }
 
+    /**
+     * Run installation
+     * @param $name
+     */
     public function actionInstall($name)
     {
-        if ($this->moduleExists($name)) {
-            if (($installer = $this->getInstaller($name)) !== null) {
-                $installer->install();
-                echo 'Module module was installed successfully.' . PHP_EOL;
-            } else {
-                echo 'Module installer don\'t found.' . PHP_EOL;
-            }
-        } else {
-            echo 'Module don\'t found.' . PHP_EOL;
-        }
+        $this->runInstallerCommand($name, 'install', 'Module module was reinstalled successfully.');
     }
 
+    /**
+     * @param $name
+     */
     public function actionUpdate($name)
     {
-        if ($this->moduleExists($name)) {
-            if (($installer = $this->getInstaller($name)) !== null) {
-                $installer->update();
-                echo 'Module module was updated successfully.' . PHP_EOL;
-            } else {
-                echo 'Module installer don\'t found.' . PHP_EOL;
-            }
-        } else {
-            echo 'Module don\'t found.' . PHP_EOL;
-        }
+        $this->runInstallerCommand($name, 'update', 'Module module was updated successfully.');
     }
-
 
     /**
      * @param $name
@@ -70,11 +58,22 @@ class ModuleController extends Controller
      */
     public function actionReinstall($name)
     {
+        $this->runInstallerCommand($name, ['uninstall', 'install'], 'Module module was reinstalled successfully.');
+    }
+
+    protected function runInstallerCommand($name, $method, $message)
+    {
         if ($this->moduleExists($name)) {
             if (($installer = $this->getInstaller($name)) !== null) {
-                $installer->uninstall();
-                $installer->install();
-                echo 'Module module was reinstalled successfully.' . PHP_EOL;
+                if (is_string($method)) {
+                    $installer->$method();
+                }
+                if (is_array($method)) {
+                    foreach ($method as $item) {
+                        $installer->$item();
+                    }
+                }
+                echo $message . PHP_EOL;
             } else {
                 echo 'Module installer don\'t found.' . PHP_EOL;
             }
