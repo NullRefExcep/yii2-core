@@ -2,10 +2,6 @@
 
 namespace nullref\core\behaviors;
 
-use nullref\category\models\Category;
-use nullref\core\interfaces\IEntityManageble;
-use nullref\core\traits\EntityManageble;
-use yii\base\Behavior;
 use yii\db\ActiveRecord;
 
 /**
@@ -15,18 +11,27 @@ use yii\db\ActiveRecord;
  * @package nullref\category\behaviors
  *
  * @property ActiveRecord $owner
- * @property Category $category
  */
 abstract class HasOneRelation extends HasRelation
 {
-    public abstract function getFieldName();
-
-    public function __call($name, $params)
+    protected function getRelation()
     {
-        if ($name == 'get' . ucfirst($this->getFieldName())) {
-            return $this->owner->hasOne($this->getManager()->getModelClass(), ['id' => $this->getAttributeName()]);
-        }
-        parent::__call($name, $params);
+        return $this->owner->hasOne($this->getManager()->getModelClass(), ['id' => $this->getFieldName()]);
+    }
+
+    public function getAttributeName()
+    {
+        return $this->attributeName;
+    }
+
+    public function getRelationName()
+    {
+        return $this->relationName;
+    }
+
+    public function getFieldName()
+    {
+        return $this->fieldName;
     }
 
 }
