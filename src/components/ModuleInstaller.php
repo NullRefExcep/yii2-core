@@ -32,8 +32,43 @@ abstract class ModuleInstaller extends Component
         $this->db->getSchema()->refresh();
     }
 
+    public function addChange($action, $meta = [])
+    {
+        $changes = $this->getChanges();
+
+        $changes[] = ['module' => $this->getModuleId(), 'action' => $action, 'meta' => $meta];
+
+        $this->writeArrayToFile($this->getChangesPath(), $changes);
+    }
+
+    public function getChange($action)
+    {
+        $changes = $this->getChanges();
+        foreach ($changes as $change) {
+            if ($change['action'] == $action && $change['module'] == $this->getModuleId()) {
+                return $change;
+            }
+        }
+        return null;
+    }
+
+    public function hasChange($action)
+    {
+        return ($this->getChange($action) !== null);
+    }
+
+    public function getChanges()
+    {
+        $array = [];
+        if (file_exists($this->getChangesPath())) {
+            $array = require($this->getChangesPath());
+        }
+        return $array;
+    }
+
     public function install()
     {
+        $this->addChange('install');
         if ($this->updateConfig) {
             $this->addToConfig();
         }
@@ -41,6 +76,7 @@ abstract class ModuleInstaller extends Component
 
     public function uninstall()
     {
+        $this->addChange('uninstall');
         if ($this->updateConfig) {
             $this->removeFromConfig();
         }
@@ -117,7 +153,7 @@ abstract class ModuleInstaller extends Component
         }
 
 
-        $this->writeConfigFile($config);
+        $this->writeArrayToFile($this->getConfigPath(), $config);
     }
 
     /**
@@ -139,16 +175,16 @@ abstract class ModuleInstaller extends Component
         if (isset($config[$this->moduleId])) {
             unset($config[$this->moduleId]);
         }
-        $this->writeConfigFile($config);
+        $this->writeArrayToFile($this->getConfigPath(), $config);
     }
 
     /**
      * Write config file
      * @param $var
      */
-    protected function writeConfigFile($var)
+    protected function writeArrayToFile($path, $var)
     {
-        file_put_contents($this->getConfigPath(), '<?php' . PHP_EOL . 'return ' . $this->varExport($var) . ';');
+        file_put_contents($path, '<?php' . PHP_EOL . 'return ' . $this->varExport($var) . ';');
     }
 
     /**
@@ -157,6 +193,14 @@ abstract class ModuleInstaller extends Component
     protected function getConfigPath()
     {
         return \Yii::getAlias('@app/config/installed_modules.php');
+    }
+
+    /**
+     * @return bool|string
+     */
+    protected function getChangesPath()
+    {
+        return \Yii::getAlias('@app/config/changes.php');
     }
 
     /**
@@ -206,8 +250,9 @@ abstract class ModuleInstaller extends Component
     /**
      * Add column for category relation if entity has it
      */
-    public function update()
+    public function updateDb()
     {
+        $this->addChange('updateDb');
         $module = Yii::$app->getModule($this->moduleId);
         /** @var Module $module */
         foreach ($module->getComponents() as $id => $component) {

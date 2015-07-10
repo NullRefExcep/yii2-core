@@ -3,6 +3,7 @@
 namespace nullref\core\console;
 
 use nullref\core\components\ModuleInstaller;
+use nullref\core\Installer;
 use yii\console\Controller;
 
 /**
@@ -31,9 +32,18 @@ class ModuleController extends Controller
     /**
      * @param $name
      */
-    public function actionUpdate($name)
+    public function actionUpdateDb($name)
     {
-        $this->runInstallerCommand($name, 'update', 'Module module was updated successfully.');
+        $this->runInstallerCommand($name, 'updateDb', 'Module module was updated DB successfully.');
+    }
+
+    public function actionMigrate()
+    {
+        $changes = $this->getChanges();
+        foreach ($changes as $item) {
+            $this->runInstallerCommand($item['module'], $item['action']);
+        }
+        echo 'Migrate successfully.' . PHP_EOL;
     }
 
     /**
@@ -53,6 +63,14 @@ class ModuleController extends Controller
         }
     }
 
+    protected function getChanges()
+    {
+        /** @var Installer $installer */
+        $installer = \Yii::createObject(Installer::className(), ['db' => $this->db]);
+
+        return $installer->getChanges();
+    }
+
     /**
      * @param $name
      */
@@ -61,7 +79,7 @@ class ModuleController extends Controller
         $this->runInstallerCommand($name, ['uninstall', 'install'], 'Module module was reinstalled successfully.');
     }
 
-    protected function runInstallerCommand($name, $method, $message)
+    protected function runInstallerCommand($name, $method, $message = '')
     {
         if ($this->moduleExists($name)) {
             if (($installer = $this->getInstaller($name)) !== null) {

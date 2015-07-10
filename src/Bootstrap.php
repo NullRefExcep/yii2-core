@@ -6,6 +6,7 @@
 
 namespace nullref\core;
 
+use Yii;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 use yii\console\Application as ConsoleApplication;
@@ -30,5 +31,6 @@ class Bootstrap implements BootstrapInterface
                 'class' => 'nullref\core\console\ModuleController',
             ];
         }
+
     }
 } 
