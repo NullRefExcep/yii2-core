@@ -10,6 +10,7 @@ use Yii;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 use yii\console\Application as ConsoleApplication;
+use yii\helpers\ArrayHelper;
 use yii\web\Application as WebApplication;
 
 class Bootstrap implements BootstrapInterface
@@ -23,7 +24,12 @@ class Bootstrap implements BootstrapInterface
     {
         if ($app instanceof WebApplication) {
             $app->setComponents([
-                'view' => ['class' => 'nullref\core\components\View'],
+                /** Init theme for views overriding */
+                'view' => ArrayHelper::merge($app->getComponents()['view'], [
+                    'theme' => [
+                        'basePath' => '@app/views',
+                        'pathMap' => []
+                    ]])
             ]);
         }
         if ($app instanceof ConsoleApplication) {
@@ -31,6 +37,5 @@ class Bootstrap implements BootstrapInterface
                 'class' => 'nullref\core\console\ModuleController',
             ];
         }
-
     }
 } 
