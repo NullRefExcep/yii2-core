@@ -12,6 +12,7 @@ use Yii;
 use yii\base\Component;
 use yii\base\Event;
 use yii\base\InvalidConfigException;
+use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
@@ -29,6 +30,23 @@ class EntityManager extends Component implements IEntityManager
     public $typeField = 'type';
     public $type = null;
 
+    public $softDelete = true;
+    public $deleteField = 'deleted';
+    public $deletedValue = true;
+
+    public $extraData = false;
+    public $extraField = 'data';
+    public $extraFields = [];
+
+    protected $_tableName;
+
+    public function tableName()
+    {
+        if (!isset($this->_tableName)) {
+            $this->_tableName = call_user_func([$this->getModelClass(), 'tableName']);
+        }
+        return $this->_tableName;
+    }
 
     public static function getConfig($namespace, $modelName, $config = [])
     {
@@ -50,9 +68,21 @@ class EntityManager extends Component implements IEntityManager
         if (empty($this->model)) {
             throw new InvalidConfigException('You must set model class');
         }
+        if (empty($this->query)) {
+            throw new InvalidConfigException('You must set query class');
+        }
+        if (empty($this->searchModel)) {
+            throw new InvalidConfigException('You must set search model class');
+        }
         if (is_array($this->model) && isset($this->model['class']) && isset($this->model['relations'])) {
+            /** Set relations behaviors **/
             foreach ($this->model['relations'] as $id => $config) {
                 Event::on($this->model['class'], ActiveRecord::EVENT_INIT, function (Event $e) use ($id, $config) {
+                    /** @var Component $model */
+                    $model = $e->sender;
+                    $model->attachBehavior($id, $config);
+                });
+                Event::on($this->getModelSearchClass(), ActiveRecord::EVENT_INIT, function (Event $e) use ($id, $config) {
                     /** @var Component $model */
                     $model = $e->sender;
                     $model->attachBehavior($id, $config);
@@ -60,14 +90,32 @@ class EntityManager extends Component implements IEntityManager
             }
             unset($this->model['relations']);
         }
-        if (empty($this->query)) {
-            throw new InvalidConfigException('You must set query class');
-        }
-        if (empty($this->searchModel)) {
-            throw new InvalidConfigException('You must set search model class');
-        }
         if (isset($this->type)) {
             $this->typification = true;
+        }
+        if ($this->extraData) {
+            if (empty($this->extraField)) {
+                throw new InvalidConfigException('You must set extra field');
+            }
+            if (is_array($this->extraFields)) {
+                /** Check what kind of array is set */
+                $fields = $this->extraFields;
+                $extraField = $this->extraField;
+                if (!(count(array_filter(array_keys($this->extraFields), 'is_string')) > 0)) {
+                    $fields = [];
+                    foreach ($this->extraFields as $field) {
+                        $fields[$field] = '';
+                    }
+                }
+                Event::on($this->getModelClass(), ActiveRecord::EVENT_AFTER_FIND, function (Event $e) use ($fields, $extraField) {
+                    /** @var Component $model */
+                    $model = $e->sender;
+                    $model->{$extraField} = array_merge($fields, $model->{$extraField});
+                });
+
+            } else {
+                throw new InvalidConfigException('You must set extra fields');
+            }
         }
     }
 
@@ -91,7 +139,21 @@ class EntityManager extends Component implements IEntityManager
      */
     public function createQuery()
     {
-        return Yii::createObject($this->query);
+        $model = $this->getModelClass();
+        /** @var ActiveQuery $query */
+        $query = $model::find();
+        if (is_array($query)) {
+            yii::configure($query, $this->query);
+        }
+
+        if ($this->typification) {
+            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+        }
+
+        if ($this->softDelete) {
+            $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
+        }
+        return $query;
     }
 
     /**
@@ -118,7 +180,7 @@ class EntityManager extends Component implements IEntityManager
         if ($this->typification) {
             $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
-        return call_user_func([$this->getModelClass(), 'findAll'], [$condition]);
+        return call_user_func([$this->getModelClass(), 'findAll'], $condition);
     }
 
     /**
@@ -128,7 +190,7 @@ class EntityManager extends Component implements IEntityManager
     public function find($condition = [])
     {
         if ($this->typification) {
-            $condition = array_merge($condition, [$this->typeField => $this->type]);
+            $condition = array_merge($condition, [$this->tableName() . '.' . $this->typeField => $this->type]);
         }
         return call_user_func([$this->getModelClass(), 'find'], [$condition]);
     }
@@ -144,17 +206,12 @@ class EntityManager extends Component implements IEntityManager
     {
         $query = static::find()->andWhere($condition);
         if ($this->typification) {
-            $query->andWhere([$this->typeField => $this->type]);
+            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
         }
         if ($asArray) {
             $query->asArray();
         }
         return ArrayHelper::map($query->all(), $index, $value);
-    }
-
-    public function tableName()
-    {
-        return call_user_func([$this->getModelClass(), 'tableName']);
     }
 
     /**
@@ -166,6 +223,17 @@ class EntityManager extends Component implements IEntityManager
             return $this->model['class'];
         }
         return $this->model;
+    }
+
+    /**
+     * @return string
+     */
+    public function getModelSearchClass()
+    {
+        if (is_array($this->searchModel) && isset($this->searchModel['class'])) {
+            return $this->searchModel['class'];
+        }
+        return $this->searchModel;
     }
 
     /**

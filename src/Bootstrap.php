@@ -36,6 +36,9 @@ class Bootstrap implements BootstrapInterface
             $app->controllerMap['module'] = [
                 'class' => 'nullref\core\console\ModuleController',
             ];
+            $app->controllerMap['modules-migrate'] = [
+                'class' => 'nullref\core\console\ModulesMigrateController',
+            ];
         }
     }
 } 
