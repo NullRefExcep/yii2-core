@@ -8,6 +8,7 @@ namespace nullref\core\components;
 
 use Yii;
 use yii\base\Module as BaseModule;
+use yii\web\Application as WebApplication;
 
 
 class Module extends BaseModule
@@ -16,6 +17,8 @@ class Module extends BaseModule
     {
         parent::init();
         /** Add path for views overriding */
-        Yii::$app->view->theme->pathMap['@nullref/' . $this->id] = '@app/modules/' . $this->id;
+        if (Yii::$app instanceof WebApplication) {
+            Yii::$app->view->theme->pathMap['@nullref/' . $this->id] = '@app/modules/' . $this->id;
+        }
     }
 } 
