@@ -23,14 +23,7 @@ class Bootstrap implements BootstrapInterface
     public function bootstrap($app)
     {
         if ($app instanceof WebApplication) {
-            $app->setComponents([
-                /** Init theme for views overriding */
-                'view' => ArrayHelper::merge([
-                    'theme' => [
-                        'basePath' => '@app/views',
-                        'pathMap' => []
-                    ]], $app->getComponents()['view'])
-            ]);
+
         }
         if ($app instanceof ConsoleApplication) {
             $app->controllerMap['module'] = [
