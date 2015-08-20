@@ -4,6 +4,7 @@ namespace nullref\core\components;
 
 use nullref\core\behaviors\HasManyRelation;
 use nullref\core\behaviors\HasOneRelation;
+use nullref\core\Module;
 use Yii;
 use yii\base\Component;
 use yii\db\Connection;

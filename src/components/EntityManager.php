@@ -8,6 +8,7 @@ namespace nullref\core\components;
  */
 
 use nullref\core\interfaces\IEntityManager;
+use nullref\core\models\Model;
 use Yii;
 use yii\base\Component;
 use yii\base\Event;
@@ -59,6 +60,18 @@ class EntityManager extends Component implements IEntityManager
         return array_merge($default, $config);
     }
 
+    /**
+     * @param $model Model
+     */
+    public function delete($model)
+    {
+        if ($this->softDelete) {
+            $model->setAttribute($this->deleteField,$this->deletedValue);
+            $model->save(false, [$this->deleteField]);
+        } else {
+            $model->delete();
+        }
+    }
     /**
      * @throws InvalidConfigException
      */
@@ -167,12 +180,28 @@ class EntityManager extends Component implements IEntityManager
         if ($this->typification) {
             $model->{$this->typeField} = $this->type;
         }
+        if ($this->softDelete) {
+            $model->{$this->deleteField} = null;
+        }
         return $model;
     }
 
+    /**
+     * @param $condition
+     * @return Model
+     */
     public function findOne($condition)
     {
-        return call_user_func([$this->getModelClass(), 'findOne'], [$condition]);
+        if(!is_array($condition)){
+            $condition = ['id'=>$condition];
+        }
+        if ($this->typification) {
+            $condition = array_merge($condition, [$this->typeField => $this->type]);
+        }
+        if ($this->softDelete) {
+            $condition = array_merge($condition, [$this->deleteField => null]);
+        }
+        return call_user_func([$this->getModelClass(), 'findOne'], $condition);
     }
 
     public function findAll($condition = [])
@@ -207,6 +236,9 @@ class EntityManager extends Component implements IEntityManager
         $query = static::find()->andWhere($condition);
         if ($this->typification) {
             $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+        }
+        if ($this->softDelete) {
+            $query->andWhere([$this->deleteField => null]);
         }
         if ($asArray) {
             $query->asArray();
