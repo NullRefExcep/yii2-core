@@ -16,7 +16,11 @@ abstract class OneHasManyRelation extends ManyHasOneRelation
 {
     protected function getRelation()
     {
-        return $this->owner->hasMany($this->getManager()->getModelClass(), [$this->getFieldName() => 'id']);
+        $query = $this->owner->hasMany($this->getManager()->getModelClass(), [$this->getFieldName() => 'id']);
+        if ($this->getManager()->isSoftDelete()){
+            return $query->where([$this->getManager()->tableName().'.'.$this->getManager()->getDeleteField() => null]);
+        }
+        return $query;
     }
 
 }

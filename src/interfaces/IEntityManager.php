@@ -30,4 +30,18 @@ interface IEntityManager
     public function findAll();
 
     public function getModelClass();
+
+    /**
+     * @return bool
+     */
+    public function isSoftDelete();
+
+    /**
+     * @return string
+     */
+    public function getDeleteField();
+    /**
+     * @return string
+     */
+    public function tableName();
 }

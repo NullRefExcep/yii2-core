@@ -41,12 +41,31 @@ class EntityManager extends Component implements IEntityManager
 
     protected $_tableName;
 
+    /**
+     * @return string
+     */
     public function tableName()
     {
         if (!isset($this->_tableName)) {
             $this->_tableName = call_user_func([$this->getModelClass(), 'tableName']);
         }
         return $this->_tableName;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSoftDelete()
+    {
+        return boolval($this->softDelete);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDeleteField()
+    {
+        return $this->deleteField;
     }
 
     public static function getConfig($namespace, $modelName, $config = [])
