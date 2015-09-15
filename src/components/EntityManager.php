@@ -24,6 +24,7 @@ class EntityManager extends Component implements IEntityManager
     public $model = '';
     public $query = '';
     public $searchModel = '';
+
     /** @var string|Connection */
     public $db = '';
 
@@ -68,6 +69,12 @@ class EntityManager extends Component implements IEntityManager
         return $this->deleteField;
     }
 
+    /**
+     * @param $namespace
+     * @param $modelName
+     * @param array $config
+     * @return array
+     */
     public static function getConfig($namespace, $modelName, $config = [])
     {
         $default = [
@@ -92,6 +99,7 @@ class EntityManager extends Component implements IEntityManager
             $model->delete();
         }
     }
+
     /**
      * @throws InvalidConfigException
      */
@@ -303,7 +311,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @param $query
+     * @param ActiveQuery $query
      */
     public function decorateQuery($query)
     {
