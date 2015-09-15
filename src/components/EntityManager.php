@@ -80,7 +80,8 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @param $model Model
+     * @param Model $model
+     * @return void
      */
     public function delete($model)
     {
@@ -189,8 +190,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @return object
-     * @throws \yii\base\InvalidConfigException
+     * @return mixed
      */
     public function createSearchModel()
     {
@@ -223,6 +223,10 @@ class EntityManager extends Component implements IEntityManager
         return call_user_func([$this->getModelClass(), 'findOne'], $condition);
     }
 
+    /**
+     * @param array $condition
+     * @return mixed
+     */
     public function findAll($condition = [])
     {
         if ($this->typification) {
@@ -298,4 +302,17 @@ class EntityManager extends Component implements IEntityManager
         return $this->query;
     }
 
+    /**
+     * @param $query
+     */
+    public function decorateQuery($query)
+    {
+        if ($this->typification) {
+            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+        }
+
+        if ($this->softDelete) {
+            $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
+        }
+    }
 }
