@@ -17,6 +17,7 @@ use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
+use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 class EntityManager extends Component implements IEntityManager
@@ -24,7 +25,6 @@ class EntityManager extends Component implements IEntityManager
     public $model = '';
     public $query = '';
     public $searchModel = '';
-
     /** @var string|Connection */
     public $db = '';
 
@@ -69,12 +69,6 @@ class EntityManager extends Component implements IEntityManager
         return $this->deleteField;
     }
 
-    /**
-     * @param $namespace
-     * @param $modelName
-     * @param array $config
-     * @return array
-     */
     public static function getConfig($namespace, $modelName, $config = [])
     {
         $default = [
@@ -88,6 +82,7 @@ class EntityManager extends Component implements IEntityManager
 
     /**
      * @param Model $model
+     * @throws \Exception
      * @return void
      */
     public function delete($model)
@@ -187,18 +182,15 @@ class EntityManager extends Component implements IEntityManager
             yii::configure($query, $this->query);
         }
 
-        if ($this->typification) {
-            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
-        }
+        $this->decorateQuery($query);
 
-        if ($this->softDelete) {
-            $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
-        }
         return $query;
     }
 
+
     /**
-     * @return mixed
+     * @return object
+     * @throws \yii\base\InvalidConfigException
      */
     public function createSearchModel()
     {
@@ -231,10 +223,6 @@ class EntityManager extends Component implements IEntityManager
         return call_user_func([$this->getModelClass(), 'findOne'], $condition);
     }
 
-    /**
-     * @param array $condition
-     * @return mixed
-     */
     public function findAll($condition = [])
     {
         if ($this->typification) {
@@ -249,10 +237,18 @@ class EntityManager extends Component implements IEntityManager
      */
     public function find($condition = [])
     {
-        if ($this->typification) {
-            $condition = array_merge($condition, [$this->tableName() . '.' . $this->typeField => $this->type]);
+        /** @var ActiveQuery $query */
+        $query = call_user_func([$this->getModelClass(), 'find']);
+        if (!empty($condition)){
+            $query->andWhere($condition);
         }
-        return call_user_func([$this->getModelClass(), 'find'], [$condition]);
+        if ($this->typification) {
+            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+        }
+        if ($this->softDelete) {
+            $query->andWhere([$this->deleteField => null]);
+        }
+        return $query;
     }
 
     /**
@@ -311,7 +307,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @param ActiveQuery $query
+     * @param $query
      */
     public function decorateQuery($query)
     {
@@ -323,4 +319,5 @@ class EntityManager extends Component implements IEntityManager
             $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
         }
     }
+
 }
