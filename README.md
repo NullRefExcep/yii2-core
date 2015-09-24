@@ -40,7 +40,7 @@ For full integration, you have to run console command:
 php yii module/install <module-name>
 ```
 
-###Content
+### Content
 
 Core module for fast web development based on Yii2.
 This package contains:
@@ -53,3 +53,39 @@ This package contains:
     * IRoleContainer - interface which provide roles for RBAC
     * IEntityManager - interface EntityManager
     * IEntityManageble - interface for classes which contain EntityManager
+ 
+
+### EntityManager
+
+Component for simple work with models, which have soft Delete and typification.
+
+Config:
+```php
+/** module config **/
+'productManager' => [
+    "class" => "nullref\\product\\components\\EntityManager",
+    'hasImage' => false,
+    'hasStatus' => false,
+    'model' => [
+        'class' => 'app\\models\\Product',
+        'relations' => [
+            'category' => 'nullref\\category\\behaviors\\HasCategory',
+            'vendor' => 'app\\behaviors\\HasVendor',
+        ],
+    ],
+    'searchModel' => 'app\\models\\ProductSearch',
+],
+/** ... **/
+```
+
+Available methods:
+
+- `createModel()` - create new model
+- `createSearchModel()` - create new search model
+- `findOne($condition)` - find one model by condition
+- `findAll($condition)` - find all models by condition
+- `find($condition = [])` - create ActiveQuery with condition
+- `getMap($index = 'id', $value = 'title', $condition = [], $asArray = true)` - get key=>value array of model by condition
+- `delete($model)` - delete model
+- `decorateQuery($query)` decorate query by settings of entity manger
+
