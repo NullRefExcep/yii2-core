@@ -77,7 +77,7 @@ class EntityManager extends Component implements IEntityManager
             'query' => $namespace . $modelName . 'Query',
             'searchModel' => $namespace . $modelName . 'Search',
         ];
-        return array_merge($default, $config);
+        return ArrayHelper::merge($config, $default);
     }
 
     /**
@@ -146,7 +146,7 @@ class EntityManager extends Component implements IEntityManager
                 Event::on($this->getModelClass(), ActiveRecord::EVENT_AFTER_FIND, function (Event $e) use ($fields, $extraField) {
                     /** @var Component $model */
                     $model = $e->sender;
-                    $model->{$extraField} = array_merge($fields, $model->{$extraField});
+                    $model->{$extraField} = ArrayHelper::merge($fields, $model->{$extraField});
                 });
 
             } else {
@@ -215,10 +215,10 @@ class EntityManager extends Component implements IEntityManager
             $condition = ['id'=>$condition];
         }
         if ($this->typification) {
-            $condition = array_merge($condition, [$this->typeField => $this->type]);
+            $condition = ArrayHelper::merge($condition, [$this->typeField => $this->type]);
         }
         if ($this->softDelete) {
-            $condition = array_merge($condition, [$this->deleteField => null]);
+            $condition = ArrayHelper::merge($condition, [$this->deleteField => null]);
         }
         return call_user_func([$this->getModelClass(), 'findOne'], $condition);
     }
@@ -226,7 +226,7 @@ class EntityManager extends Component implements IEntityManager
     public function findAll($condition = [])
     {
         if ($this->typification) {
-            $condition = array_merge($condition, [$this->typeField => $this->type]);
+            $condition = ArrayHelper::merge($condition, [$this->typeField => $this->type]);
         }
         return call_user_func([$this->getModelClass(), 'findAll'], $condition);
     }
