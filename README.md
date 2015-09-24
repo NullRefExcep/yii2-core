@@ -7,7 +7,7 @@ Module for administration
 Installation
 ------------
 
-The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+The preferred way to install this extension to use [composer](http://getcomposer.org/download/).
 
 Either run
 
@@ -25,7 +25,7 @@ to the require section of your `composer.json` file.
 
 ###Modules system
 
-This module provide basic tools for creating system of modules.
+This module provides basic tools for creating system of modules.
 
 Available modules:
 
@@ -57,7 +57,7 @@ This package contains:
 
 ### EntityManager
 
-Component for simple work with models, which have soft Delete and typification.
+Component for simple work with models, which have soft delete and typification.
 
 Config:
 ```php
