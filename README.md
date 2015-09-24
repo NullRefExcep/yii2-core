@@ -23,6 +23,25 @@ or add
 
 to the require section of your `composer.json` file.
 
+###Modules system
+
+This module provide basic tools for creating system of modules.
+
+Available modules:
+
+ - [admin](https://github.com/NullRefExcep/yii2-admin)
+ - [category](https://github.com/NullRefExcep/yii2-category)
+ - [product](https://github.com/NullRefExcep/yii2-product)
+ - [geo](https://github.com/NullRefExcep/yii2-geo)
+ 
+For full integration, you have to run console command:
+
+```
+php yii module/install <module-name>
+```
+
+###Content
+
 Core module for fast web development based on Yii2.
 This package contains:
 
