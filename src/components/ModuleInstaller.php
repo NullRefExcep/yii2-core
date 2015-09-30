@@ -191,7 +191,12 @@ abstract class ModuleInstaller extends Component
      */
     protected function getConfigPath()
     {
-        return \Yii::getAlias('@app/config/installed_modules.php');
+        $path = \Yii::getAlias('@app/config/installed_modules.php');
+        if (!file_exists($path)){
+            $this->writeArrayToFile($path, []);
+            echo 'Include "installed_modules.php" file to application config' . PHP_EOL;
+        }
+        return $path;
     }
 
     /**
