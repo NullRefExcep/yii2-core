@@ -9,6 +9,7 @@ use yii\base\Component;
 use yii\db\Connection;
 use yii\db\Schema;
 use yii\di\Instance;
+use yii\helpers\FileHelper;
 
 /**
  * @property string $moduleId
@@ -240,6 +241,7 @@ abstract class ModuleInstaller extends Component
         if (file_exists($path) && $override) {
             @unlink($path);
         }
+        FileHelper::createDirectory(dirname($path));
         touch($path);
     }
 
