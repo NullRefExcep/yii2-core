@@ -17,7 +17,6 @@ use yii\db\ActiveQuery;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
-use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 class EntityManager extends Component implements IEntityManager
@@ -25,6 +24,7 @@ class EntityManager extends Component implements IEntityManager
     public $model = '';
     public $query = '';
     public $searchModel = '';
+
     /** @var string|Connection */
     public $db = '';
 
@@ -69,6 +69,12 @@ class EntityManager extends Component implements IEntityManager
         return $this->deleteField;
     }
 
+    /**
+     * @param $namespace
+     * @param $modelName
+     * @param array $config
+     * @return array
+     */
     public static function getConfig($namespace, $modelName, $config = [])
     {
         $default = [
@@ -77,12 +83,11 @@ class EntityManager extends Component implements IEntityManager
             'query' => $namespace . $modelName . 'Query',
             'searchModel' => $namespace . $modelName . 'Search',
         ];
-        return ArrayHelper::merge($config, $default);
+        return array_merge($default, $config);
     }
 
     /**
      * @param Model $model
-     * @throws \Exception
      * @return void
      */
     public function delete($model)
@@ -146,7 +151,7 @@ class EntityManager extends Component implements IEntityManager
                 Event::on($this->getModelClass(), ActiveRecord::EVENT_AFTER_FIND, function (Event $e) use ($fields, $extraField) {
                     /** @var Component $model */
                     $model = $e->sender;
-                    $model->{$extraField} = ArrayHelper::merge($fields, $model->{$extraField});
+                    $model->{$extraField} = array_merge($fields, $model->{$extraField});
                 });
 
             } else {
@@ -182,15 +187,18 @@ class EntityManager extends Component implements IEntityManager
             yii::configure($query, $this->query);
         }
 
-        $this->decorateQuery($query);
+        if ($this->typification) {
+            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+        }
 
+        if ($this->softDelete) {
+            $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
+        }
         return $query;
     }
 
-
     /**
-     * @return object
-     * @throws \yii\base\InvalidConfigException
+     * @return mixed
      */
     public function createSearchModel()
     {
@@ -215,18 +223,22 @@ class EntityManager extends Component implements IEntityManager
             $condition = ['id'=>$condition];
         }
         if ($this->typification) {
-            $condition = ArrayHelper::merge($condition, [$this->typeField => $this->type]);
+            $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
         if ($this->softDelete) {
-            $condition = ArrayHelper::merge($condition, [$this->deleteField => null]);
+            $condition = array_merge($condition, [$this->deleteField => null]);
         }
         return call_user_func([$this->getModelClass(), 'findOne'], $condition);
     }
 
+    /**
+     * @param array $condition
+     * @return mixed
+     */
     public function findAll($condition = [])
     {
         if ($this->typification) {
-            $condition = ArrayHelper::merge($condition, [$this->typeField => $this->type]);
+            $condition = array_merge($condition, [$this->typeField => $this->type]);
         }
         return call_user_func([$this->getModelClass(), 'findAll'], $condition);
     }
@@ -237,18 +249,10 @@ class EntityManager extends Component implements IEntityManager
      */
     public function find($condition = [])
     {
-        /** @var ActiveQuery $query */
-        $query = call_user_func([$this->getModelClass(), 'find']);
-        if (!empty($condition)){
-            $query->andWhere($condition);
-        }
         if ($this->typification) {
-            $query->andWhere([$this->tableName() . '.' . $this->typeField => $this->type]);
+            $condition = array_merge($condition, [$this->tableName() . '.' . $this->typeField => $this->type]);
         }
-        if ($this->softDelete) {
-            $query->andWhere([$this->deleteField => null]);
-        }
-        return $query;
+        return call_user_func([$this->getModelClass(), 'find'], [$condition]);
     }
 
     /**
@@ -307,7 +311,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @param $query
+     * @param ActiveQuery $query
      */
     public function decorateQuery($query)
     {
@@ -319,5 +323,4 @@ class EntityManager extends Component implements IEntityManager
             $query->andWhere([$this->tableName() . '.' . $this->deleteField => null]);
         }
     }
-
 }

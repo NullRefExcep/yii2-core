@@ -26,7 +26,7 @@ class ModuleController extends Controller
      */
     public function actionInstall($name)
     {
-        $this->runInstallerCommand($name, 'install', 'Module module was reinstalled successfully.');
+        $this->runInstallerCommand($name, 'install', 'Module module was installed successfully.');
     }
 
     /**
@@ -77,6 +77,20 @@ class ModuleController extends Controller
     public function actionReinstall($name)
     {
         $this->runInstallerCommand($name, ['uninstall', 'install'], 'Module module was reinstalled successfully.');
+    }
+
+    /**
+     * @param $modelName1
+     * @param $modelName2
+     */
+    public function actionBindModels($modelName1, $modelName2)
+    {
+        $model1 = new $modelName1();
+        $model2 = new $modelName2();
+
+        if ($this->confirm('Generate migration?')) {
+
+        }
     }
 
     protected function runInstallerCommand($name, $method, $message = '')

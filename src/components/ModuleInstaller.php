@@ -9,7 +9,6 @@ use yii\base\Component;
 use yii\db\Connection;
 use yii\db\Schema;
 use yii\di\Instance;
-use yii\helpers\FileHelper;
 
 /**
  * @property string $moduleId
@@ -20,6 +19,8 @@ abstract class ModuleInstaller extends Component
      * @var Connection|array|string
      */
     public $db = 'db';
+
+    public $runModuleMigrations = false;
 
     public abstract function getModuleId();
 
@@ -39,6 +40,18 @@ abstract class ModuleInstaller extends Component
         $changes[] = ['module' => $this->getModuleId(), 'action' => $action, 'meta' => $meta];
 
         $this->writeArrayToFile($this->getChangesPath(), $changes);
+    }
+
+    public function runModuleMigrations($id = null, $path = null)
+    {
+        if ($path ==null) {
+            if($id === null){
+                $id = $this->getModuleId();
+            }
+            $module = Yii::$app->getModule($id);
+            $path = $module->getBasePath() . DIRECTORY_SEPARATOR . 'migrations';
+        }
+        \Yii::$app->runAction('migrate/up', ['migrationPath' => $path, 'interactive' => false]);
     }
 
     public function getChange($action)
@@ -71,6 +84,9 @@ abstract class ModuleInstaller extends Component
         $this->addChange('install');
         if ($this->updateConfig) {
             $this->addToConfig();
+        }
+        if ($this->runModuleMigrations) {
+            $this->runModuleMigrations();
         }
     }
 
@@ -192,12 +208,7 @@ abstract class ModuleInstaller extends Component
      */
     protected function getConfigPath()
     {
-        $path = \Yii::getAlias('@app/config/installed_modules.php');
-        if (!file_exists($path)){
-            $this->writeArrayToFile($path, []);
-            echo 'Include "installed_modules.php" file to application config' . PHP_EOL;
-        }
-        return $path;
+        return \Yii::getAlias('@app/config/installed_modules.php');
     }
 
     /**
@@ -241,7 +252,6 @@ abstract class ModuleInstaller extends Component
         if (file_exists($path) && $override) {
             @unlink($path);
         }
-        FileHelper::createDirectory(dirname($path));
         touch($path);
     }
 
