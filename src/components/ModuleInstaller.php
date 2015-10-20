@@ -85,7 +85,7 @@ abstract class ModuleInstaller extends Component
         if ($this->updateConfig) {
             $this->addToConfig();
         }
-        if ($this->runModuleMigrations) {
+        if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
             $this->runModuleMigrations();
         }
     }
