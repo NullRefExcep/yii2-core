@@ -6,6 +6,7 @@ use nullref\core\behaviors\HasManyRelation;
 use nullref\core\behaviors\HasOneRelation;
 use Yii;
 use yii\base\Component;
+use yii\console\Application;
 use yii\db\Connection;
 use yii\db\Schema;
 use yii\di\Instance;
@@ -84,6 +85,9 @@ abstract class ModuleInstaller extends Component
         $this->addChange('install');
         if ($this->updateConfig) {
             $this->addToConfig();
+            $config = require(Yii::getAlias('@app/config/console.php'));
+            $moduleId = $this->moduleId;
+            Yii::$app->setModule($moduleId,$config['modules'][$moduleId]);
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
             $this->runModuleMigrations();

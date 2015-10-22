@@ -9,8 +9,9 @@ namespace nullref\core;
 use Yii;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
+use yii\base\Event;
 use yii\console\Application as ConsoleApplication;
-use yii\helpers\ArrayHelper;
+use yii\gii\Module as Gii;
 use yii\web\Application as WebApplication;
 
 class Bootstrap implements BootstrapInterface
@@ -32,6 +33,15 @@ class Bootstrap implements BootstrapInterface
             $app->controllerMap['modules-migrate'] = [
                 'class' => 'nullref\core\console\ModulesMigrateController',
             ];
+        }
+        if (YII_ENV_DEV) {
+            Event::on(Gii::className(), Gii::EVENT_BEFORE_ACTION, function (Event $event) {
+                /** @var Gii $gii */
+                $gii = $event->sender;
+                $gii->generators['relation-migration'] = [
+                    'class' => 'nullref\core\generators\migration\Generator',
+                ];
+            });
         }
     }
 } 
