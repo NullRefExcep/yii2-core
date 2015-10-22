@@ -2,6 +2,7 @@
 
 namespace nullref\core\behaviors;
 
+use nullref\core\traits\EntityManageble;
 use voskobovich\behaviors\ManyToManyBehavior;
 use yii\db\ActiveRecord;
 
@@ -13,8 +14,16 @@ use yii\db\ActiveRecord;
  *
  * @property ActiveRecord $owner
  */
-abstract class ManyHasManyRelation extends HasRelation
+class ManyHasManyRelation extends HasRelation
 {
+    use EntityManageble;
+
+    public $attributeLabel;
+    public $attributeName;
+    public $fromFieldName;
+    public $toFieldName;
+    public $tableName;
+
     public function getAttributeName()
     {
         return $this->attributeName;
@@ -73,4 +82,10 @@ abstract class ManyHasManyRelation extends HasRelation
         }
         return parent::hasMethod($name);
     }
+
+    public function getAttributeLabel()
+    {
+        return empty($this->attributeLabel)?$this->getRelationName():$this->attributeLabel;
+    }
+
 }

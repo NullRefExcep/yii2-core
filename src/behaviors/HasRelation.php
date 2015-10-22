@@ -13,8 +13,6 @@ use yii\base\Behavior;
 
 abstract class HasRelation extends Behavior implements IEntityManageble
 {
-    use EntityManageble;
-
     public abstract function getRelationName();
 
     public abstract function getAttributeName();

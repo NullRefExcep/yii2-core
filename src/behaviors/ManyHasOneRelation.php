@@ -2,6 +2,7 @@
 
 namespace nullref\core\behaviors;
 
+use nullref\core\traits\EntityManageble;
 use yii\db\ActiveRecord;
 
 /**
@@ -14,6 +15,8 @@ use yii\db\ActiveRecord;
  */
 abstract class ManyHasOneRelation extends HasRelation
 {
+    use EntityManageble;
+
     protected function getRelation()
     {
         return $this->owner->hasOne($this->getManager()->getModelClass(), ['id' => $this->getFieldName()]);
