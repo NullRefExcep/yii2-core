@@ -74,7 +74,7 @@ abstract class HasRelation extends Behavior
      */
     public function canGetProperty($name, $checkVars = true)
     {
-        if ($name ==  $this->getAttributeName()) {
+        if ($name == $this->getAttributeName()) {
             return true;
         }
         return parent::canGetProperty($name, $checkVars);
@@ -82,7 +82,7 @@ abstract class HasRelation extends Behavior
 
     public function __get($name)
     {
-        if ($name ==  $this->getAttributeName()) {
+        if ($name == $this->getAttributeName()) {
             return $this->getRelation();
         }
         return parent::__get($name);

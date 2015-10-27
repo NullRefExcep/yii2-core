@@ -45,6 +45,10 @@ class Generator extends BaseGenerator
                     $tableName =$model->tableName();
                     $modelKey1 = $behavior->selfField;
                 }
+                if ($behavior instanceof  HasManyRelation){
+                    $tableName =$model->tableName();
+                    $modelKey1 = $behavior->selfField;
+                }
             }
         }
         $files = [];

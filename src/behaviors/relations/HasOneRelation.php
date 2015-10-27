@@ -17,7 +17,7 @@ class HasOneRelation extends HasRelation
      */
     protected function getRelation()
     {
-        return $this->owner->hasOne($this->foreignModel,[$this->foreignField=>$this->selfField]);
+        return $this->owner->hasOne($this->foreignModel, [$this->foreignField => $this->selfField]);
     }
 
 }
