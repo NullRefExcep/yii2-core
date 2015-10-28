@@ -50,7 +50,7 @@ class ModulesMigrateController extends MigrateController
     {
         $applied = [];
         foreach ($this->getMigrationHistory(null) as $version => $time) {
-            $applied[substr($version, 1, 13)] = true;
+            $applied[$version] = true;
         }
         $migrations = [];
         foreach ($this->migrationPaths as $dirPath) {
@@ -61,7 +61,7 @@ class ModulesMigrateController extends MigrateController
                         continue;
                     }
                     $path = $dirPath . DIRECTORY_SEPARATOR . $file;
-                    if (preg_match('/^(m(\d{6}_\d{6})_.*?)\.php$/', $file, $matches) && is_file($path) && !isset($applied[$matches[2]])) {
+                    if (preg_match('/^(m(\d{6}_\d{6})_.*?)\.php$/', $file, $matches) && is_file($path) && !isset($applied[$matches[1]])) {
                         $migrations[] = $matches[1];
                     }
                 }
