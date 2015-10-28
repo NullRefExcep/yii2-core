@@ -5,6 +5,7 @@ namespace nullref\core\generators\migration;
 use nullref\core\behaviors\ManyHasManyRelation;
 use nullref\core\behaviors\ManyHasOneRelation;
 use nullref\core\behaviors\OneHasManyRelation;
+use nullref\core\behaviors\relations\HasManyRelation;
 use nullref\core\behaviors\relations\HasOneRelation;
 use nullref\core\behaviors\relations\HasRelation;
 use yii\db\ActiveRecord;
@@ -17,6 +18,9 @@ use yii\gii\Generator as BaseGenerator;
  */
 class Generator extends BaseGenerator
 {
+    const CMD_TYPE_ADD_TABLE = 'add-table';
+    const CMD_TYPE_ADD_FIELD = 'add-field';
+
     public $modelClass;
     public $modelAttribute;
 
@@ -34,21 +38,20 @@ class Generator extends BaseGenerator
         /** @var ActiveRecord $model */
         $model = \Yii::createObject($this->modelClass);
 
-        $tableName = false;
-        $modelKey1 = false;
-        $modelKey2 = false;
-
+        $commands = [];
 
         foreach ($model->behaviors as $key => $behavior) {
-            if ($behavior instanceof  HasRelation){
-                if ($behavior instanceof  HasOneRelation){
-                    $tableName =$model->tableName();
-                    $modelKey1 = $behavior->selfField;
-                }
-                if ($behavior instanceof  HasManyRelation){
-                    $tableName =$model->tableName();
-                    $modelKey1 = $behavior->selfField;
-                }
+            if (($behavior instanceof  HasRelation) && ($behavior->attributeName == $this->modelAttribute)){
+                $commands[] = [
+                    'type'=>self::CMD_TYPE_ADD_FIELD,
+                    'tableName'=>$model->tableName(),
+                    'fieldName' => $behavior->selfField,
+                ];
+                $commands[] = [
+                    'type'=>self::CMD_TYPE_ADD_FIELD,
+                    'tableName'=>call_user_func([$behavior->foreignModel,'tableName']),
+                    'fieldName' => $behavior->foreignField,
+                ];
             }
         }
         $files = [];
@@ -57,9 +60,7 @@ class Generator extends BaseGenerator
         $code = $this->render('migration.php', [
             'isManyToMany' => $this->isManyToMany,
             'name' => $name,
-            'tableName' => $tableName,
-            'modelKey1' => $modelKey1,
-            'modelKey2' => $modelKey2,
+            'commands' => $commands,
         ]);
         $files[] = new CodeFile(
             \Yii::getAlias('@app/migrations') . '/' . $name . '.php',
