@@ -10,6 +10,7 @@ use yii\console\Application;
 use yii\db\Connection;
 use yii\db\Schema;
 use yii\di\Instance;
+use yii\helpers\FileHelper;
 
 /**
  * @property string $moduleId
@@ -257,6 +258,11 @@ abstract class ModuleInstaller extends Component
             @unlink($path);
         }
         touch($path);
+    }
+
+    protected function createFolder($alias, $mode = 0775)
+    {
+        FileHelper::createDirectory(Yii::getAlias($alias), $mode);
     }
 
     protected function deleteFile($alias)
