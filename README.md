@@ -30,9 +30,11 @@ This module provides basic tools for creating system of modules.
 Available modules:
 
  - [admin](https://github.com/NullRefExcep/yii2-admin)
+ - [cms](https://github.com/NullRefExcep/yii2-cms)
  - [category](https://github.com/NullRefExcep/yii2-category)
  - [product](https://github.com/NullRefExcep/yii2-product)
  - [geo](https://github.com/NullRefExcep/yii2-geo)
+ - [blog](https://github.com/NullRefExcep/yii2-blog)
  
 For full integration, you have to run console command:
 
