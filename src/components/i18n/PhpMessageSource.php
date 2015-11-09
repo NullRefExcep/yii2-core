@@ -27,7 +27,7 @@ class PhpMessageSource extends BasePhpMessageSource
         if (!isset($this->_parentMessages[$key])) {
             $parent = Yii::$app->getI18n()->getMessageSource($category . '*');
             $oldMessages = $parent->loadMessages($category, $language);
-            $this->_parentMessages[$key] = ArrayHelper::merge($oldMessages, $messages);
+            $this->_parentMessages[$key] = array_merge($oldMessages, array_filter($messages));
         }
         return $this->_parentMessages[$key];
     }
