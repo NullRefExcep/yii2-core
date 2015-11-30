@@ -4,8 +4,7 @@
 
 Module for administration
 
-Installation
-------------
+## Installation
 
 The preferred way to install this extension to use [composer](http://getcomposer.org/download/).
 
@@ -23,7 +22,7 @@ or add
 
 to the require section of your `composer.json` file.
 
-###Modules system
+### Modules system
 
 This module provides basic tools for creating system of modules.
 
