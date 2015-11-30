@@ -8,7 +8,6 @@ namespace nullref\core\components\i18n;
 
 
 use Yii;
-use yii\helpers\ArrayHelper;
 use yii\i18n\PhpMessageSource as BasePhpMessageSource;
 
 class PhpMessageSource extends BasePhpMessageSource
