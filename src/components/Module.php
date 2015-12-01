@@ -18,20 +18,30 @@ class Module extends BaseModule
 
     const EVENT_AFTER_INIT = 'afterInit';
 
+    public $vendor = 'nullref';
+
     public function init()
     {
         $this->trigger(self::EVENT_BEFORE_INIT);
 
         parent::init();
-        /** Add path for views overriding */
+        $this->addOverrideViewPath();
+
+        $this->trigger(self::EVENT_AFTER_INIT);
+    }
+
+    /**
+     * Add path to theme pathMap for views overriding
+     * @throws \yii\base\InvalidConfigException
+     */
+    protected function addOverrideViewPath()
+    {
         if (Yii::$app instanceof WebApplication) {
             $view = Yii::$app->getView();
             if ($view->theme === null) {
                 $view->theme = Yii::createObject(['class' => 'yii\base\Theme', 'pathMap' => []]);
             }
-            $view->theme->pathMap['@nullref/' . $this->id] = '@app/modules/' . $this->id;
+            $view->theme->pathMap["@{$this->vendor}/" . $this->getUniqueId()] = realpath(Yii::$app->basePath.'/modules/' . $this->getUniqueId());
         }
-
-        $this->trigger(self::EVENT_AFTER_INIT);
     }
 } 
