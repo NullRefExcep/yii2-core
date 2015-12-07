@@ -34,7 +34,7 @@ class Bootstrap implements BootstrapInterface
                 'class' => 'nullref\core\console\ModulesMigrateController',
             ];
         }
-        if (YII_ENV_DEV) {
+        if (YII_ENV_DEV && class_exists('yii\gii\Module')) {
             Event::on(Gii::className(), Gii::EVENT_BEFORE_ACTION, function (Event $event) {
                 /** @var Gii $gii */
                 $gii = $event->sender;
