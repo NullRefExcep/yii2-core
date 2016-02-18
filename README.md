@@ -60,7 +60,7 @@ This package contains:
 
 Core package contain [PhpMessageSource](https://github.com/NullRefExcep/yii2-core/blob/master/src/components/i18n/PhpMessageSource.php) class that allows to merge default module's and application's messages.
 Example for [admin](https://github.com/NullRefExcep/yii2-admin) module
-```
+```php
 [
  /** App config **/
  'components' => [
