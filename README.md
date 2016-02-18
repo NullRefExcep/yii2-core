@@ -56,6 +56,26 @@ This package contains:
     * IEntityManageble - interface for classes which contain EntityManager
  
 
+### Translation overriding
+
+Core package contain [PhpMessageSource](https://github.com/NullRefExcep/yii2-core/blob/master/src/components/i18n/PhpMessageSource.php) class that allows to merge default module's and application's messages.
+Example for [admin](https://github.com/NullRefExcep/yii2-admin) module
+```
+[
+ /** App config **/
+ 'components' => [
+  'i18n' => [
+      'translations' => [
+          '*' => ['class' => 'yii\i18n\PhpMessageSource'],
+          'admin' => ['class' => 'nullref\core\components\i18n\PhpMessageSource'],
+      ],
+  ],
+ ]
+]
+```
+
+In this case messages from category `admin` from application directory will be merged with default messages from module.
+
 ### EntityManager
 
 Component for simple work with models, which have soft delete and typification.
