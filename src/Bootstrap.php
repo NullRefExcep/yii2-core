@@ -33,6 +33,9 @@ class Bootstrap implements BootstrapInterface
             $app->controllerMap['modules-migrate'] = [
                 'class' => 'nullref\core\console\ModulesMigrateController',
             ];
+            $app->controllerMap['env'] = [
+                'class' => 'nullref\core\console\EnvController',
+            ];
         }
         if (YII_ENV_DEV && class_exists('yii\gii\Module')) {
             Event::on(Gii::className(), Gii::EVENT_BEFORE_ACTION, function (Event $event) {
