@@ -23,9 +23,6 @@ abstract class ModuleInstaller extends Component
     public $db = 'db';
 
     public $runModuleMigrations = false;
-
-    public abstract function getModuleId();
-
     public $updateConfig = true;
 
     public function init()
@@ -35,25 +32,9 @@ abstract class ModuleInstaller extends Component
         $this->db->getSchema()->refresh();
     }
 
-    public function addChange($action, $meta = [])
+    public function hasChange($action)
     {
-        $changes = $this->getChanges();
-
-        $changes[] = ['module' => $this->getModuleId(), 'action' => $action, 'meta' => $meta];
-
-        $this->writeArrayToFile($this->getChangesPath(), $changes);
-    }
-
-    public function runModuleMigrations($id = null, $path = null)
-    {
-        if ($path ==null) {
-            if($id === null){
-                $id = $this->getModuleId();
-            }
-            $module = Yii::$app->getModule($id);
-            $path = $module->getBasePath() . DIRECTORY_SEPARATOR . 'migrations';
-        }
-        \Yii::$app->runAction('migrate/up', ['migrationPath' => $path, 'interactive' => false]);
+        return ($this->getChange($action) !== null);
     }
 
     public function getChange($action)
@@ -67,11 +48,6 @@ abstract class ModuleInstaller extends Component
         return null;
     }
 
-    public function hasChange($action)
-    {
-        return ($this->getChange($action) !== null);
-    }
-
     public function getChanges()
     {
         $array = [];
@@ -81,6 +57,16 @@ abstract class ModuleInstaller extends Component
         return $array;
     }
 
+    /**
+     * @return bool|string
+     */
+    protected function getChangesPath()
+    {
+        return \Yii::getAlias('@app/config/changes.php');
+    }
+
+    public abstract function getModuleId();
+
     public function install()
     {
         $this->addChange('install');
@@ -88,115 +74,20 @@ abstract class ModuleInstaller extends Component
             $this->addToConfig();
             $config = require(Yii::getAlias('@app/config/console.php'));
             $moduleId = $this->moduleId;
-            Yii::$app->setModule($moduleId,$config['modules'][$moduleId]);
+            Yii::$app->setModule($moduleId, $config['modules'][$moduleId]);
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
-            $this->runModuleMigrations();
+            \Yii::$app->runAction('modules-migrate/up', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
         }
     }
 
-    public function uninstall()
+    public function addChange($action, $meta = [])
     {
-        $this->addChange('uninstall');
-        if ($this->updateConfig) {
-            $this->removeFromConfig();
-        }
-    }
+        $changes = $this->getChanges();
 
-    /**
-     * Check if table exist
-     * @param $tableName
-     * @return bool
-     */
-    public function tableExist($tableName)
-    {
-        return $this->db->schema->getTableSchema($tableName, true) !== null;
-    }
+        $changes[] = ['module' => $this->getModuleId(), 'action' => $action, 'meta' => $meta];
 
-    public function hasColumn($tableName, $columnName)
-    {
-        return ($this->tableExist($tableName) && isset($this->db->schema->getTableSchema($tableName, true)->columns[$columnName]));
-    }
-
-    /**
-     * Builds and executes a SQL statement for dropping a DB table.
-     * @param string $table the table to be dropped. The name will be properly quoted by the method.
-     */
-    public function dropTable($table)
-    {
-        $this->db->createCommand()->dropTable($table)->execute();
-    }
-
-    /**
-     * @param $table
-     * @param $column
-     * @param $type
-     * @param bool $override
-     */
-    public function addColumn($table, $column, $type, $override = false)
-    {
-        if ($this->hasColumn($table, $column)) {
-            if ($override) {
-                $this->db->createCommand()->dropColumn($table, $column)->execute();
-            } else {
-                return;
-            }
-        }
-        $this->db->createCommand()->addColumn($table, $column, $type)->execute();
-    }
-
-    /**
-     * Create table by name, columns and options
-     * @param $table
-     * @param $columns
-     * @param null $options
-     */
-    public function createTable($table, $columns, $options = null)
-    {
-        $this->db->createCommand()->createTable($table, $columns, $options)->execute();
-    }
-
-
-    /**
-     * Add module item to config
-     */
-    protected function addToConfig()
-    {
-        $path = $this->getConfigPath();
-        $config = require($path);
-        if (isset($config[$this->moduleId])) {
-            if (\Yii::$app->controller->confirm('Rewrite exist config?')) {
-                $config[$this->moduleId] = $this->getConfigArray();
-                echo 'Module config was rewrote' . PHP_EOL;
-            }
-        } else {
-            $config[$this->moduleId] = $this->getConfigArray();
-        }
-
-
-        $this->writeArrayToFile($this->getConfigPath(), $config);
-    }
-
-    /**
-     * @return array
-     */
-    protected function getConfigArray()
-    {
-        return ['class' => str_replace('Installer', 'Module', get_called_class())];
-    }
-
-    /**
-     * Remove module item from config
-     */
-    protected function removeFromConfig()
-    {
-        $path = $this->getConfigPath();
-        $config = require($path);
-
-        if (isset($config[$this->moduleId])) {
-            unset($config[$this->moduleId]);
-        }
-        $this->writeArrayToFile($this->getConfigPath(), $config);
+        $this->writeArrayToFile($this->getChangesPath(), $changes);
     }
 
     /**
@@ -206,22 +97,6 @@ abstract class ModuleInstaller extends Component
     protected function writeArrayToFile($path, $var)
     {
         file_put_contents($path, '<?php' . PHP_EOL . 'return ' . $this->varExport($var) . ';');
-    }
-
-    /**
-     * @return bool|string
-     */
-    protected function getConfigPath()
-    {
-        return \Yii::getAlias('@app/config/installed_modules.php');
-    }
-
-    /**
-     * @return bool|string
-     */
-    protected function getChangesPath()
-    {
-        return \Yii::getAlias('@app/config/changes.php');
     }
 
     /**
@@ -251,6 +126,74 @@ abstract class ModuleInstaller extends Component
         }
     }
 
+    /**
+     * Add module item to config
+     */
+    protected function addToConfig()
+    {
+        $path = $this->getConfigPath();
+        $config = require($path);
+        if (isset($config[$this->moduleId])) {
+            if (\Yii::$app->controller->confirm('Rewrite exist config?')) {
+                $config[$this->moduleId] = $this->getConfigArray();
+                echo 'Module config was rewrote' . PHP_EOL;
+            }
+        } else {
+            $config[$this->moduleId] = $this->getConfigArray();
+        }
+
+
+        $this->writeArrayToFile($this->getConfigPath(), $config);
+    }
+
+    /**
+     * @return bool|string
+     */
+    protected function getConfigPath()
+    {
+        return \Yii::getAlias('@app/config/installed_modules.php');
+    }
+
+    /**
+     * @return array
+     */
+    protected function getConfigArray()
+    {
+        return ['class' => str_replace('Installer', 'Module', get_called_class())];
+    }
+
+    public function uninstall()
+    {
+        $this->addChange('uninstall');
+        if ($this->updateConfig) {
+            $this->removeFromConfig();
+        }
+        if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Down module migrations?')) {
+            \Yii::$app->runAction('modules-migrate/down', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
+        }
+    }
+
+    /**
+     * Remove module item from config
+     */
+    protected function removeFromConfig()
+    {
+        $path = $this->getConfigPath();
+        $config = require($path);
+
+        if (isset($config[$this->moduleId])) {
+            unset($config[$this->moduleId]);
+        }
+        $this->writeArrayToFile($this->getConfigPath(), $config);
+    }
+
+
+    /**
+     * Create file by alias
+     *
+     * @param $alias
+     * @param bool $override
+     */
     protected function createFile($alias, $override = true)
     {
         $path = \Yii::getAlias($alias);
@@ -260,57 +203,27 @@ abstract class ModuleInstaller extends Component
         touch($path);
     }
 
+    /**
+     * Create directory by alias
+     *
+     * @param $alias
+     * @param int $mode
+     * @throws \yii\base\Exception
+     */
     protected function createFolder($alias, $mode = 0775)
     {
         FileHelper::createDirectory(Yii::getAlias($alias), $mode);
     }
 
+    /**
+     * Delete file is exist
+     * @param $alias
+     */
     protected function deleteFile($alias)
     {
         $path = \Yii::getAlias($alias);
         if (file_exists($path)) {
             @unlink($path);
-        }
-    }
-
-    /**
-     * Add column for category relation if entity has it
-     */
-    public function updateDb()
-    {
-        $this->addChange('updateDb');
-        $module = Yii::$app->getModule($this->moduleId);
-        /** @var Module $module */
-        foreach ($module->getComponents() as $id => $component) {
-            if (is_array($component)) {
-                $component = $module->get($id);
-            }
-            if ($component instanceof EntityManager) {
-                $model = $component->createModel();
-                foreach ($model->behaviors as $behavior) {
-                    if ($behavior instanceof HasOneRelation) {
-                        $this->addColumn($model->tableName(), $behavior->getAttributeName(), Schema::TYPE_INTEGER);
-                    }
-                }
-                foreach ($model->behaviors as $behavior) {
-                    if ($behavior instanceof HasManyRelation) {
-                        if (!$this->tableExist($behavior->getTableName())) {
-                            $this->createTable($behavior->getTableName(), [
-                                $behavior->getToFieldName() => Schema::TYPE_INTEGER,
-                                $behavior->getFromFieldName() => Schema::TYPE_INTEGER,
-                            ]);
-                            $this->db->createCommand()
-                                ->addPrimaryKey($behavior->getFromFieldName() . $behavior->getToFieldName(),
-                                    $behavior->getTableName(), [
-                                        $behavior->getToFieldName(),
-                                        $behavior->getFromFieldName()
-                                    ])
-                                ->execute();
-                        }
-                    }
-                }
-            }
-
         }
     }
 }

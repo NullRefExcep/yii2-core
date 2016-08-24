@@ -7,6 +7,7 @@
 namespace nullref\core\traits;
 
 use yii\db\Connection;
+use yii\helpers\Console;
 
 /**
  * Trait MigrationTrait
@@ -20,21 +21,21 @@ trait MigrationTrait
 {
     /**
      * @param $tableName
-     * @return bool
-     */
-    public function tableExist($tableName)
-    {
-        return $this->db->schema->getTableSchema($tableName, true) !== null;
-    }
-
-    /**
-     * @param $tableName
      * @param $columnName
      * @return bool
      */
     public function hasColumn($tableName, $columnName)
     {
         return ($this->tableExist($tableName) && isset($this->db->schema->getTableSchema($tableName, true)->columns[$columnName]));
+    }
+
+    /**
+     * @param $tableName
+     * @return bool
+     */
+    public function tableExist($tableName)
+    {
+        return $this->db->schema->getTableSchema($tableName, true) !== null;
     }
 
     /**
@@ -56,7 +57,7 @@ trait MigrationTrait
      */
     public function confirm($message, $default = false)
     {
-        return \Yii::$app->controller->confirm($message,$default);
+        return \Yii::$app->controller->confirm($message, $default);
     }
 
     /**
@@ -67,4 +68,15 @@ trait MigrationTrait
     {
         return \Yii::$app->controller->stdout($string);
     }
+
+
+    public function dropTableIfExist($table)
+    {
+        if ($this->tableExist($table)) {
+            return $this->dropTable($table);
+        } else {
+            Console::output('Table "' . $table . '" not found');
+        }
+    }
+
 }

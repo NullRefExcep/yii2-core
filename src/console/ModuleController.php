@@ -29,14 +29,6 @@ class ModuleController extends Controller
         $this->runInstallerCommand($name, 'install', 'Module module was installed successfully.');
     }
 
-    /**
-     * @param $name
-     */
-    public function actionUpdateDb($name)
-    {
-        $this->runInstallerCommand($name, 'updateDb', 'Module module was updated DB successfully.');
-    }
-
     public function actionMigrate()
     {
         $changes = $this->getChanges();

@@ -8,20 +8,51 @@ namespace nullref\core\console;
 
 use \yii\console\controllers\MigrateController;
 use Yii;
+use yii\console\Exception;
+use yii\helpers\Console;
 
 class ModulesMigrateController extends MigrateController
 {
+    public $migrationPath = null;
+    public $moduleId = null;
     protected $migrationPaths = [];
+
+    protected $defaultMigrationPath = '@app/migrations';
+
+    public function options($actionID)
+    {
+        return array_merge(
+            parent::options($actionID),
+            in_array($actionID, ['up', 'down']) ? ['moduleId'] : []
+        );
+    }
+
 
     public function beforeAction($action)
     {
+        $oldPath = $this->migrationPath;
+
+        $this->migrationPath = $this->defaultMigrationPath;
+
         if (parent::beforeAction($action)) {
-            foreach (Yii::$app->modules as $name => $module) {
-                $module = Yii::$app->getModule($name);
-                $this->migrationPaths[] = $module->getBasePath() . DIRECTORY_SEPARATOR . 'migrations';
-            }
             $this->stdout('Migration files will be searched in folders: ' . PHP_EOL);
-            $this->migrationPaths[] = $this->migrationPath;
+            $this->migrationPath = $oldPath;
+
+            if ($this->moduleId) {
+                $this->migrationPath = $this->getMigrationPath($this->moduleId);
+            }
+
+            if ($this->migrationPath) {
+                $this->migrationPaths[] = $this->migrationPath;
+            } else {
+                $this->migrationPaths[] = $this->defaultMigrationPath;
+                foreach (Yii::$app->modules as $name => $module) {
+                    $this->migrationPaths[] = $this->getMigrationPath($name);
+                }
+            }
+
+            $this->migrationPaths = array_unique($this->migrationPaths);
+
             for ($i = 0; $i < count($this->migrationPaths); $i++) {
                 $this->migrationPaths[$i] = Yii::getAlias($this->migrationPaths[$i]);
                 $this->stdout(' - ' . $this->migrationPaths[$i] . PHP_EOL);
@@ -31,6 +62,119 @@ class ModulesMigrateController extends MigrateController
         } else {
             return false;
         }
+
+    }
+
+    /**
+     * @param $moduleId
+     * @return string
+     */
+    protected function getMigrationPath($moduleId)
+    {
+        $module = Yii::$app->getModule($moduleId);
+        return $module->getBasePath() . DIRECTORY_SEPARATOR . 'migrations';
+    }
+
+    public function actionDownModule($moduleId, $limit = 'all')
+    {
+        if ($limit === 'all') {
+            $limit = null;
+        } else {
+            $limit = (int)$limit;
+            if ($limit < 1) {
+                throw new Exception('The step argument must be greater than 0.');
+            }
+        }
+
+        $migrations = $this->getMigrationHistory($limit);
+        $modulesMigration = $this->getModuleMigrations($moduleId);
+
+        $filteredMigration = [];
+        foreach ($migrations as $key => $migration) {
+            if (isset($modulesMigration[$key])) {
+                $filteredMigration[$key] = $migration;
+            }
+        }
+        $migrations = $filteredMigration;
+        if (empty($migrations)) {
+            $this->stdout("No migration has been done before.\n", Console::FG_YELLOW);
+
+            return self::EXIT_CODE_NORMAL;
+        }
+
+        $migrations = array_keys($migrations);
+
+        $n = count($migrations);
+        $this->stdout("Total $n " . ($n === 1 ? 'migration' : 'migrations') . " to be reverted:\n", Console::FG_YELLOW);
+        foreach ($migrations as $migration) {
+            $this->stdout("\t$migration\n");
+        }
+        $this->stdout("\n");
+
+        $reverted = 0;
+        if ($this->confirm('Revert the above ' . ($n === 1 ? 'migration' : 'migrations') . '?')) {
+            foreach ($migrations as $migration) {
+                if (!$this->migrateDown($migration)) {
+                    $this->stdout("\n$reverted from $n " . ($reverted === 1 ? 'migration was' : 'migrations were') . " reverted.\n", Console::FG_RED);
+                    $this->stdout("\nMigration failed. The rest of the migrations are canceled.\n", Console::FG_RED);
+
+                    return self::EXIT_CODE_ERROR;
+                }
+                $reverted++;
+            }
+            $this->stdout("\n$n " . ($n === 1 ? 'migration was' : 'migrations were') . " reverted.\n", Console::FG_GREEN);
+            $this->stdout("\nMigrated down successfully.\n", Console::FG_GREEN);
+        }
+    }
+
+    protected function getMigrationHistory($limit)
+    {
+        if ($this->moduleId) {
+            $module = Yii::$app->getModule($this->moduleId);
+            if ($module === null) {
+                throw new Exception('Module "' . $this->moduleId . '" not found');
+            }
+
+            $migrationHistory = parent::getMigrationHistory(false);
+
+            $modulesMigration = $this->getModuleMigrations($this->moduleId);
+            $filteredMigration = [];
+            foreach ($migrationHistory as $key => $migration) {
+                if (isset($modulesMigration[$key])) {
+                    $filteredMigration[$key] = $migration;
+                }
+            }
+            $migrationHistory = $filteredMigration;
+        } else {
+
+            $migrationHistory = parent::getMigrationHistory($limit);
+        }
+        return $migrationHistory;
+    }
+
+    protected function getModuleMigrations($moduleId, $applied = [])
+    {
+        $path = $this->getMigrationPath($moduleId);
+        return $this->getMigrationsFromDir($path, $applied);
+    }
+
+    protected function getMigrationsFromDir($dirPath, $applied = [])
+    {
+        $migrations = [];
+        if (is_dir($dirPath)) {
+            $handle = opendir($dirPath);
+            while (($file = readdir($handle)) !== false) {
+                if ($file === '.' || $file === '..') {
+                    continue;
+                }
+                $path = $dirPath . DIRECTORY_SEPARATOR . $file;
+                if (preg_match('/^(m(\d{6}_\d{6})_.*?)\.php$/', $file, $matches) && is_file($path) && !isset($applied[$matches[1]])) {
+                    $migrations[$matches[1]] = $matches[1];
+                }
+            }
+            closedir($handle);
+        }
+        return $migrations;
     }
 
     protected function createMigration($class)
@@ -54,19 +198,7 @@ class ModulesMigrateController extends MigrateController
         }
         $migrations = [];
         foreach ($this->migrationPaths as $dirPath) {
-            if (is_dir($dirPath)) {
-                $handle = opendir($dirPath);
-                while (($file = readdir($handle)) !== false) {
-                    if ($file === '.' || $file === '..') {
-                        continue;
-                    }
-                    $path = $dirPath . DIRECTORY_SEPARATOR . $file;
-                    if (preg_match('/^(m(\d{6}_\d{6})_.*?)\.php$/', $file, $matches) && is_file($path) && !isset($applied[$matches[1]])) {
-                        $migrations[] = $matches[1];
-                    }
-                }
-                closedir($handle);
-            }
+            $migrations = array_merge($migrations, $this->getMigrationsFromDir($dirPath, $applied));
         }
         sort($migrations);
         return $migrations;
