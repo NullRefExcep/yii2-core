@@ -23,11 +23,14 @@ class LanguageManager extends Component implements ILanguageManager
     {
         parent::init();
         $languages = [];
-        foreach ($this->languages as $slug => $title) {
-            $language = new Language($title, $slug);
+        foreach ($this->languages as $config) {
+            if (is_array($config) && !isset($config['class'])) {
+                $config['class'] = Language::className();
+            }
+            $language = \Yii::createObject($config);
             $languages [$language->getId()] = $language;
         }
-        $this->_currentLanguage = $languages[0];
+        $this->_currentLanguage = reset($languages);
         $this->languages = $languages;
     }
 

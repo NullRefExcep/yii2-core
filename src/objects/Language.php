@@ -8,29 +8,17 @@
 namespace nullref\core\objects;
 
 use nullref\core\interfaces\ILanguage;
+use yii\base\Object;
 
 /**
  * Class Language
  * @package nullref\core\objects
  */
-class Language implements ILanguage
+class Language extends Object implements ILanguage
 {
-    protected static $id_counter = 0;
     protected $_title;
     protected $_id;
     protected $_slug;
-
-    /**
-     * Language constructor.
-     * @param $title
-     * @param $slug
-     */
-    public function __construct($title, $slug)
-    {
-        $this->_id = self::$id_counter++;
-        $this->_slug = $slug;
-        $this->_title = $title;
-    }
 
     /**
      * Get slug of language
@@ -43,6 +31,14 @@ class Language implements ILanguage
     }
 
     /**
+     * @param $id
+     */
+    public function setId($id)
+    {
+        $this->_id = $id;
+    }
+
+    /**
      * Get title of language
      * @return string
      */
@@ -52,11 +48,27 @@ class Language implements ILanguage
     }
 
     /**
+     * @param $title
+     */
+    public function setTitle($title)
+    {
+        $this->_title = $title;
+    }
+
+    /**
      * Slug of language
      * @return mixed
      */
     public function getSlug()
     {
         return $this->_slug;
+    }
+
+    /**
+     * @param $slug
+     */
+    public function setSlug($slug)
+    {
+        $this->_slug = $slug;
     }
 }
