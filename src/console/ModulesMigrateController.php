@@ -10,6 +10,7 @@ use \yii\console\controllers\MigrateController;
 use Yii;
 use yii\console\Exception;
 use yii\helpers\Console;
+use yii\helpers\FileHelper;
 
 class ModulesMigrateController extends MigrateController
 {
@@ -23,10 +24,29 @@ class ModulesMigrateController extends MigrateController
     {
         return array_merge(
             parent::options($actionID),
-            in_array($actionID, ['up', 'down']) ? ['moduleId'] : []
+            in_array($actionID, ['up', 'down', 'create']) ? ['moduleId'] : []
         );
     }
 
+
+    public function actionCreate($name)
+    {
+        if (!preg_match('/^\w+$/', $name)) {
+            throw new Exception('The migration name should contain letters, digits and/or underscore characters only.');
+        }
+
+        $className = 'm' . gmdate('ymd_His') . '_' . $name;
+        $file = $this->migrationPath . DIRECTORY_SEPARATOR . $className . '.php';
+        FileHelper::createDirectory(dirname($file));
+        if ($this->confirm("Create new migration '$file'?")) {
+            $content = $this->generateMigrationSourceCode([
+                'name' => $name,
+                'className' => $className,
+            ]);
+            file_put_contents($file, $content);
+            $this->stdout("New migration created successfully.\n", Console::FG_GREEN);
+        }
+    }
 
     public function beforeAction($action)
     {
@@ -203,6 +223,4 @@ class ModulesMigrateController extends MigrateController
         sort($migrations);
         return $migrations;
     }
-
-
 } 
