@@ -25,7 +25,6 @@ class Module extends BaseModule
         $this->trigger(self::EVENT_BEFORE_INIT);
 
         parent::init();
-        $this->addOverrideViewPath();
 
         $this->trigger(self::EVENT_AFTER_INIT);
     }

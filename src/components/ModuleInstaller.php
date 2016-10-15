@@ -75,6 +75,7 @@ abstract class ModuleInstaller extends Component
             $config = require(Yii::getAlias('@app/config/console.php'));
             $moduleId = $this->moduleId;
             Yii::$app->setModule($moduleId, $config['modules'][$moduleId]);
+            Yii::$app->init();
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
             \Yii::$app->runAction('modules-migrate/up', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);

@@ -6,6 +6,7 @@ use nullref\core\components\ModuleInstaller;
 use nullref\core\Installer;
 use Symfony\Component\Finder\Finder;
 use yii\console\Controller;
+use yii\helpers\Console;
 
 /**
  * @author    Dmytro Karpovych
@@ -42,12 +43,12 @@ class ModuleController extends Controller
                         $installer->$item();
                     }
                 }
-                echo $message . PHP_EOL;
+                Console::output($message);
             } else {
-                echo 'Module installer don\'t found.' . PHP_EOL;
+                Console::output('Module installer don\'t found.');
             }
         } else {
-            echo 'Module don\'t found.' . PHP_EOL;
+            Console::output('Module don\'t found.');
         }
     }
 
@@ -95,7 +96,7 @@ class ModuleController extends Controller
         foreach ($changes as $item) {
             $this->runInstallerCommand($item['module'], $item['action']);
         }
-        echo 'Migrate successfully.' . PHP_EOL;
+        Console::output('Migrate successfully.');
     }
 
     protected function getChanges()
@@ -113,13 +114,17 @@ class ModuleController extends Controller
     {
         if ($this->moduleExists($name)) {
             if (($installer = $this->getInstaller($name)) !== null) {
+                if (\Yii::$app->getModule($installer->moduleId) === null) {
+                    Console::output('Module was not installed');
+                    return;
+                }
                 $installer->uninstall();
-                echo 'Module module was uninstalled successfully.' . PHP_EOL;
+                Console::output('Module module was uninstalled successfully.');
             } else {
-                echo 'Module installer don\'t found.' . PHP_EOL;
+                Console::output('Module installer don\'t found.');
             }
         } else {
-            echo 'Module don\'t found.' . PHP_EOL;
+            Console::output('Module don\'t found.');
         }
     }
 
