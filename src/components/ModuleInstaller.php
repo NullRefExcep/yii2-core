@@ -200,6 +200,10 @@ abstract class ModuleInstaller extends Component
         if (file_exists($path) && $override) {
             @unlink($path);
         }
+        $dir = dirname($path);
+        if (!file_exists($dir)) {
+            $this->createFolder($dir);
+        }
         touch($path);
     }
 
