@@ -4,6 +4,7 @@ namespace nullref\core\console;
 
 use nullref\core\components\ModuleInstaller;
 use nullref\core\Installer;
+use Symfony\Component\Finder\Finder;
 use yii\console\Controller;
 
 /**
@@ -29,62 +30,6 @@ class ModuleController extends Controller
         $this->runInstallerCommand($name, 'install', 'Module module was installed successfully.');
     }
 
-    public function actionMigrate()
-    {
-        $changes = $this->getChanges();
-        foreach ($changes as $item) {
-            $this->runInstallerCommand($item['module'], $item['action']);
-        }
-        echo 'Migrate successfully.' . PHP_EOL;
-    }
-
-    /**
-     * @param $name
-     */
-    public function actionUninstall($name)
-    {
-        if ($this->moduleExists($name)) {
-            if (($installer = $this->getInstaller($name)) !== null) {
-                $installer->uninstall();
-                echo 'Module module was uninstalled successfully.' . PHP_EOL;
-            } else {
-                echo 'Module installer don\'t found.' . PHP_EOL;
-            }
-        } else {
-            echo 'Module don\'t found.' . PHP_EOL;
-        }
-    }
-
-    protected function getChanges()
-    {
-        /** @var Installer $installer */
-        $installer = \Yii::createObject(Installer::className(), ['db' => $this->db]);
-
-        return $installer->getChanges();
-    }
-
-    /**
-     * @param $name
-     */
-    public function actionReinstall($name)
-    {
-        $this->runInstallerCommand($name, ['uninstall', 'install'], 'Module module was reinstalled successfully.');
-    }
-
-    /**
-     * @param $modelName1
-     * @param $modelName2
-     */
-    public function actionBindModels($modelName1, $modelName2)
-    {
-        $model1 = new $modelName1();
-        $model2 = new $modelName2();
-
-        if ($this->confirm('Generate migration?')) {
-
-        }
-    }
-
     protected function runInstallerCommand($name, $method, $message = '')
     {
         if ($this->moduleExists($name)) {
@@ -108,26 +53,95 @@ class ModuleController extends Controller
 
     /**
      * @param $name
+     * @return bool
+     */
+    protected function moduleExists($name)
+    {
+        return isset(\Yii::$app->extensions[$name]);
+    }
+
+    /**
+     * @param $name
      * @return null|ModuleInstaller
      * @throws \yii\base\InvalidConfigException
      */
     protected function getInstaller($name)
     {
-        $installerClassName = '\\nullref\\' . $name . '\\Installer';
-        if (class_exists($installerClassName)) {
-            return \Yii::createObject($installerClassName, ['db' => $this->db]);
+        $extension = \Yii::$app->extensions[$name];
+
+        $namespace = false;
+        foreach ($extension['alias'] as $key => $alias) {
+            $path = \Yii::getAlias($alias);
+            $files = iterator_to_array(Finder::create()->files()->name('Installer.php')->in($path));
+            if (count($files)) {
+                $namespace = str_replace('/', '\\', substr($key, 1));
+                break;
+            }
+        }
+
+        if ($namespace !== false) {
+            $installerClassName = $namespace . '\\Installer';
+            if (class_exists($installerClassName)) {
+                return \Yii::createObject($installerClassName, ['db' => $this->db]);
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public function actionMigrate()
+    {
+        $changes = $this->getChanges();
+        foreach ($changes as $item) {
+            $this->runInstallerCommand($item['module'], $item['action']);
+        }
+        echo 'Migrate successfully.' . PHP_EOL;
+    }
+
+    protected function getChanges()
+    {
+        /** @var Installer $installer */
+        $installer = \Yii::createObject(Installer::className(), ['db' => $this->db]);
+
+        return $installer->getChanges();
+    }
+
+    /**
+     * @param $name
+     */
+    public function actionUninstall($name)
+    {
+        if ($this->moduleExists($name)) {
+            if (($installer = $this->getInstaller($name)) !== null) {
+                $installer->uninstall();
+                echo 'Module module was uninstalled successfully.' . PHP_EOL;
+            } else {
+                echo 'Module installer don\'t found.' . PHP_EOL;
+            }
         } else {
-            return null;
+            echo 'Module don\'t found.' . PHP_EOL;
         }
     }
 
     /**
      * @param $name
-     * @return bool
      */
-    protected function moduleExists($name)
+    public function actionReinstall($name)
     {
-        $namespace = 'nullref/yii2-' . $name;
-        return isset(\Yii::$app->extensions[$namespace]);
+        $this->runInstallerCommand($name, ['uninstall', 'install'], 'Module module was reinstalled successfully.');
+    }
+
+    /**
+     * @param $modelName1
+     * @param $modelName2
+     */
+    public function actionBindModels($modelName1, $modelName2)
+    {
+        $model1 = new $modelName1();
+        $model2 = new $modelName2();
+
+        if ($this->confirm('Generate migration?')) {
+
+        }
     }
 } 
