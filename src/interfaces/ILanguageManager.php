@@ -22,11 +22,11 @@ interface ILanguageManager
     /**
      * @return ILanguage
      */
-    public function getCurrentLanguage();
+    public function getLanguage();
 
     /**
      * @param $lang ILanguage
      * @return bool
      */
-    public function setCurrentLanguage($lang);
+    public function setLanguage($lang);
 }
