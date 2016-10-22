@@ -25,8 +25,7 @@ interface ILanguageManager
     public function getLanguage();
 
     /**
-     * @param $lang ILanguage
-     * @return bool
+     * @param ILanguage $language
      */
-    public function setLanguage($lang);
+    public function setLanguage(ILanguage $language);
 }

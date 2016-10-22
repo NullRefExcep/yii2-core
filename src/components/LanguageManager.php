@@ -48,26 +48,32 @@ class LanguageManager extends Component implements ILanguageManager
     public function init()
     {
         parent::init();
+
+        $slug = Yii::$app->session->get($this->languageSessionKey);
+        if ($slug === null) {
+            $slug = Yii::$app->request->getCookies()->getValue($this->languageCookieName);
+        }
+
         $languages = [];
+        $selectedLanguage = null;
         foreach ($this->languages as $config) {
             if (is_array($config) && !isset($config['class'])) {
                 $config['class'] = Language::className();
             }
+            /** @var ILanguage $language */
             $language = \Yii::createObject($config);
             $languages [$language->getId()] = $language;
+            if ($slug === $language->getSlug()) {
+                $selectedLanguage = $language;
+            }
         }
+        $this->languages = $languages;
 
-        $language = Yii::$app->session->get($this->languageSessionKey);
-        if ($language === null) {
-            $language = Yii::$app->request->getCookies()->getValue($this->languageCookieName);
+        if ($selectedLanguage === null) {
+            $selectedLanguage = reset($languages);
         }
-        if ($language !== null && array_key_exists($language, $this->languages)) {
-            $this->_language = $this->languages[$language];
-        } else {
-            $this->_language = reset($languages);
-            $this->languages = $languages;
+        $this->setLanguage($selectedLanguage);
 
-        }
     }
 
     /**
@@ -87,27 +93,26 @@ class LanguageManager extends Component implements ILanguageManager
     }
 
     /**
-     * @param $lang
+     * @param ILanguage $language
      */
-    public function setLanguage($lang)
+    public function setLanguage(ILanguage $language)
     {
-        if ($lang instanceof ILanguage) {
-            $this->_language = $lang;
+        $this->_language = $language;
 
-            $language = $lang;
-            Yii::$app->session[$this->languageSessionKey] = $language;
-            if ($this->languageCookieDuration) {
-                $cookie = new Cookie(array_merge(
-                    ['httpOnly' => true],
-                    $this->languageCookieOptions,
-                    [
-                        'name' => $this->languageCookieName,
-                        'value' => $language,
-                        'expire' => time() + (int)$this->languageCookieDuration,
-                    ]
-                ));
-                Yii::$app->getResponse()->getCookies()->add($cookie);
-            }
+        $slug = $language->getSlug();
+        Yii::$app->session[$this->languageSessionKey] = $slug;
+
+        if ($this->languageCookieDuration) {
+            $cookie = new Cookie(array_merge(
+                ['httpOnly' => true],
+                $this->languageCookieOptions,
+                [
+                    'name' => $this->languageCookieName,
+                    'value' => $slug,
+                    'expire' => time() + (int)$this->languageCookieDuration,
+                ]
+            ));
+            Yii::$app->getResponse()->getCookies()->add($cookie);
         }
     }
 }
