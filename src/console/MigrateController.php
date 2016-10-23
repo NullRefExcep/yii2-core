@@ -11,9 +11,8 @@ namespace nullref\core\console;
 use nullref\core\interfaces\IHasMigrateNamespace;
 use Yii;
 use yii\base\Module;
-use yii\console\controllers\MigrateController as BaseController;
 
-class MigrateController extends BaseController
+class MigrateController extends \yii\console\controllers\MigrateController
 {
     /**
      *

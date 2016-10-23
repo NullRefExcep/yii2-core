@@ -6,13 +6,12 @@
 
 namespace nullref\core\console;
 
-use \yii\console\controllers\MigrateController;
 use Yii;
 use yii\console\Exception;
 use yii\helpers\Console;
 use yii\helpers\FileHelper;
 
-class ModulesMigrateController extends MigrateController
+class ModulesMigrateController extends \yii\console\controllers\MigrateController
 {
     public $migrationPath = null;
     public $moduleId = null;

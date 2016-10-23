@@ -78,7 +78,7 @@ abstract class ModuleInstaller extends Component
             Yii::$app->init();
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
-            \Yii::$app->runAction('modules-migrate/up', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
+            \Yii::$app->runAction('core/migrate/up', ['all', 'interactive' => false]);
         }
     }
 
