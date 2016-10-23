@@ -78,7 +78,7 @@ abstract class ModuleInstaller extends Component
             Yii::$app->init();
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Run migrations')) {
-            \Yii::$app->runAction('core/migrate/up', ['all', 'interactive' => false]);
+            \Yii::$app->runAction('core/migrate/up', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
         }
     }
 
@@ -170,7 +170,7 @@ abstract class ModuleInstaller extends Component
             $this->removeFromConfig();
         }
         if ($this->runModuleMigrations || \Yii::$app->controller->confirm('Down module migrations?')) {
-            \Yii::$app->runAction('modules-migrate/down', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
+            \Yii::$app->runAction('core/migrate/down', ['all', 'moduleId' => $this->getModuleId(), 'interactive' => false]);
         }
     }
 
