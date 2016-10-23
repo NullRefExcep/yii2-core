@@ -24,10 +24,10 @@ class MigrateController extends BaseController
 
         if (count($this->migrationNamespaces) === 0) {
             /** @var Module[] $modules */
-            $modules = Yii::$app->getModules(true);
+            $modules = Yii::$app->getModules();
             $namespaces = [];
-            foreach ($modules as $module) {
-                $namespaces = array_merge($namespaces, $this->getMigrationNamespace($module));
+            foreach ($modules as $id => $module) {
+                $namespaces = array_merge($namespaces, $this->getMigrationNamespace(Yii::$app->getModule($id)));
             }
             $this->migrationNamespaces = $namespaces;
         }
