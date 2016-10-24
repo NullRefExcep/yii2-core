@@ -7,9 +7,11 @@ use nullref\core\behaviors\HasOneRelation;
 use Yii;
 use yii\base\Component;
 use yii\console\Application;
+use yii\console\Controller;
 use yii\db\Connection;
 use yii\db\Schema;
 use yii\di\Instance;
+use yii\helpers\Console;
 use yii\helpers\FileHelper;
 
 /**
@@ -69,6 +71,8 @@ abstract class ModuleInstaller extends Component
 
     public function install()
     {
+        $this->stdout(' Module "' . $this->getModuleId() . '" installing: ' . PHP_EOL, Console::FG_BLUE, Console::NEGATIVE, Console::BOLD);
+
         $this->addChange('install');
         if ($this->updateConfig) {
             $this->addToConfig();
@@ -82,6 +86,24 @@ abstract class ModuleInstaller extends Component
         }
     }
 
+    /**
+     * @param $arg
+     * @return bool|int|mixed
+     */
+    public function stdout($arg)
+    {
+        /** @var Controller $controller */
+        $controller = Yii::$app->controller;
+        if ($controller instanceof Controller) {
+            return call_user_func_array([$controller, 'stdout'], func_get_args());
+        }
+        return Console::output($arg);
+    }
+
+    /**
+     * @param $action
+     * @param array $meta
+     */
     public function addChange($action, $meta = [])
     {
         $changes = $this->getChanges();
@@ -163,8 +185,13 @@ abstract class ModuleInstaller extends Component
         return ['class' => str_replace('Installer', 'Module', get_called_class())];
     }
 
+    /**
+     *
+     */
     public function uninstall()
     {
+        $this->stdout('Module "' . $this->getModuleId() . '" uninstalling:' . PHP_EOL, Console::FG_RED, Console::NEGATIVE, Console::BOLD);
+
         $this->addChange('uninstall');
         if ($this->updateConfig) {
             $this->removeFromConfig();
