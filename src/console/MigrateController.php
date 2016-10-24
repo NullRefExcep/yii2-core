@@ -20,12 +20,12 @@ class MigrateController extends \yii\console\controllers\MigrateController
     public $moduleId = null;
 
     /**
+     * Add param `moduleId` for actions: `up`, `down` and `create`
      * @param string $actionID
      * @return array
      */
     public function options($actionID)
     {
-
         $array_merge = array_merge(
             parent::options($actionID),
             in_array($actionID, ['up', 'down', 'create']) ? ['moduleId'] : []
@@ -34,6 +34,7 @@ class MigrateController extends \yii\console\controllers\MigrateController
     }
 
     /**
+     * Set `migrationNamespaces` if it empty
      * @param \yii\base\Action $action
      * @return bool
      */
@@ -43,10 +44,9 @@ class MigrateController extends \yii\console\controllers\MigrateController
             if ($this->moduleId) {
                 $namespaces = $this->getMigrationNamespace(Yii::$app->getModule($this->moduleId));
             } else {
-
                 /** @var Module[] $modules */
                 $modules = Yii::$app->getModules();
-                $namespaces = [];
+                $namespaces = ['app\migrations'];
                 foreach ($modules as $id => $module) {
                     $namespaces = array_merge($namespaces, $this->getMigrationNamespace(Yii::$app->getModule($id)));
                 }
@@ -58,6 +58,7 @@ class MigrateController extends \yii\console\controllers\MigrateController
 
 
     /**
+     * Get all possible namespace of migration by module
      * @param $module Module
      * @return array
      */
@@ -87,6 +88,7 @@ class MigrateController extends \yii\console\controllers\MigrateController
     }
 
     /**
+     * Return migrations only with namespace
      * @param int $limit
      * @return array
      */
@@ -111,6 +113,25 @@ class MigrateController extends \yii\console\controllers\MigrateController
         unset($history[self::BASE_MIGRATION]);
 
         return $history;
+    }
+
+    /**
+     * Filter migrations only with namespace
+     * @return array
+     */
+    protected function getNewMigrations()
+    {
+        $migrations = parent::getNewMigrations();
+        $namespaces = $this->migrationNamespaces;
+        $migrations = array_filter($migrations, function ($migration) use ($namespaces) {
+            foreach ($namespaces as $namespace) {
+                if (strpos($migration, $namespace) === 0) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        return $migrations;
     }
 
 
