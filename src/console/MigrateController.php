@@ -10,11 +10,13 @@ namespace nullref\core\console;
 
 use nullref\core\interfaces\IHasMigrateNamespace;
 use Yii;
+use yii\base\Exception;
 use yii\base\Module;
+use yii\console\controllers\MigrateController as BaseMigrateController;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
-class MigrateController extends \yii\console\controllers\MigrateController
+class MigrateController extends BaseMigrateController
 {
     /** @var null|string */
     public $moduleId = null;
@@ -37,12 +39,16 @@ class MigrateController extends \yii\console\controllers\MigrateController
      * Set `migrationNamespaces` if it empty
      * @param \yii\base\Action $action
      * @return bool
+     * @throws Exception
      */
     public function beforeAction($action)
     {
         if (count($this->migrationNamespaces) === 0) {
             if ($this->moduleId) {
                 $namespaces = $this->getMigrationNamespace(Yii::$app->getModule($this->moduleId));
+                if (count($namespaces) === 0) {
+                    throw new Exception('Can\'t find any one migration namespace');
+                }
             } else {
                 /** @var Module[] $modules */
                 $modules = Yii::$app->getModules();
@@ -88,6 +94,34 @@ class MigrateController extends \yii\console\controllers\MigrateController
     }
 
     /**
+     * @param string $name
+     */
+    public function actionCreate($name)
+    {
+        if (!$this->nameHasNamespace($name)) {
+            $migrationNamespaces = $this->migrationNamespaces;
+            $namespace = array_shift($migrationNamespaces);
+            $name = $namespace . '\\' . $name;
+        }
+        parent::actionCreate($name);
+    }
+
+    /**
+     * @param $name
+     * @return bool
+     */
+    protected function nameHasNamespace($name)
+    {
+        $namespaces = $this->migrationNamespaces;
+        foreach ($namespaces as $namespace) {
+            if (strpos($name, $namespace) === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Return migrations only with namespace
      * @param int $limit
      * @return array
@@ -122,17 +156,7 @@ class MigrateController extends \yii\console\controllers\MigrateController
     protected function getNewMigrations()
     {
         $migrations = parent::getNewMigrations();
-        $namespaces = $this->migrationNamespaces;
-        $migrations = array_filter($migrations, function ($migration) use ($namespaces) {
-            foreach ($namespaces as $namespace) {
-                if (strpos($migration, $namespace) === 0) {
-                    return true;
-                }
-            }
-            return false;
-        });
+        $migrations = array_filter($migrations, [$this, 'nameHasNamespace']);
         return $migrations;
     }
-
-
 }
