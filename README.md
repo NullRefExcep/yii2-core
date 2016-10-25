@@ -76,6 +76,25 @@ Example for [admin](https://github.com/NullRefExcep/yii2-admin) module
 
 In this case messages from category `admin` from application directory will be merged with default messages from module.
 
+### Modules migrations
+
+Module contains `MigrateController` controller which allows work with migrations of modules.
+
+e.g.:
+
+`php yii core/module --moduleId=admin` -- apply migrations for module with id `admin`
+
+Keep in mind: Migrations should have namespaces
+
+Also, is possible work with migrations off all modules:
+
+`php yii core/module` -- collect all possible places of migrations.
+
+By default, migrations are looked for directory `migrations` in directory of module class.
+
+If you want to override this behavior, you can implement `IHasMigrateNamespace` interface by module class.
+
+
 ### EntityManager
 
 Component for simple work with models, which have soft delete and typification.
