@@ -27,6 +27,12 @@ class LanguageManager extends Component implements ILanguageManager
      */
     public $languages = [];
 
+    /** @var bool Use session to set/get language */
+    public $languageSession = true;
+
+    /** @var bool Use cookie to set/get language */
+    public $languageCookie = true;
+
     /** @var string */
     public $languageSessionKey = '_language';
 
@@ -49,8 +55,12 @@ class LanguageManager extends Component implements ILanguageManager
     {
         parent::init();
 
-        $slug = Yii::$app->session->get($this->languageSessionKey);
-        if ($slug === null) {
+        $slug = null;
+
+        if ($this->languageSession) {
+            $slug = Yii::$app->session->get($this->languageSessionKey);
+        }
+        if ($slug === null && $this->languageCookie) {
             $slug = Yii::$app->request->getCookies()->getValue($this->languageCookieName);
         }
 
@@ -100,9 +110,12 @@ class LanguageManager extends Component implements ILanguageManager
         $this->_language = $language;
 
         $slug = $language->getSlug();
-        Yii::$app->session[$this->languageSessionKey] = $slug;
 
-        if ($this->languageCookieDuration) {
+        if ($this->languageSession) {
+            Yii::$app->session[$this->languageSessionKey] = $slug;
+        }
+
+        if ($this->languageCookie) {
             $cookie = new Cookie(array_merge(
                 ['httpOnly' => true],
                 $this->languageCookieOptions,
