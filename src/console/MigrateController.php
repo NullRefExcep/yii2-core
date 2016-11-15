@@ -115,7 +115,10 @@ class MigrateController extends BaseMigrateController
         $namespaces = $this->migrationNamespaces;
         foreach ($namespaces as $namespace) {
             if (strpos($name, $namespace) === 0) {
-                return true;
+                $file = substr($name, strlen($namespace) + 1);
+                if (preg_match('/M[0-9]{12}\w+/', $file, $matches)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -128,10 +131,6 @@ class MigrateController extends BaseMigrateController
      */
     protected function getMigrationHistory($limit)
     {
-        if ($this->moduleId === null) {
-            return parent::getMigrationHistory($limit);
-        }
-
         if ($this->db->schema->getTableSchema($this->migrationTable, true) === null) {
             $this->createMigrationHistoryTable();
         }
@@ -139,14 +138,25 @@ class MigrateController extends BaseMigrateController
         $rows = $query->select(['version', 'apply_time'])
             ->from($this->migrationTable)
             ->orderBy('apply_time DESC, version DESC')
-            ->andFilterWhere(['like', 'version', $this->migrationNamespaces])
-            ->limit($limit)
             ->createCommand($this->db)
             ->queryAll();
+
         $history = ArrayHelper::map($rows, 'version', 'apply_time');
+
         unset($history[self::BASE_MIGRATION]);
 
-        return $history;
+        $filteredHistory = [];
+        /** Get migrations only with namespaces **/
+        foreach ($history as $key => $timestamp) {
+            if ($this->nameHasNamespace($key)) {
+                $filteredHistory[$key] = $timestamp;
+                if (count($filteredHistory) >= $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $filteredHistory;
     }
 
     /**
@@ -157,6 +167,7 @@ class MigrateController extends BaseMigrateController
     {
         $migrations = parent::getNewMigrations();
         $migrations = array_filter($migrations, [$this, 'nameHasNamespace']);
+
         return $migrations;
     }
 }
