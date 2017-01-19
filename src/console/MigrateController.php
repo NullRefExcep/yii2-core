@@ -150,7 +150,7 @@ class MigrateController extends BaseMigrateController
         foreach ($history as $key => $timestamp) {
             if ($this->nameHasNamespace($key)) {
                 $filteredHistory[$key] = $timestamp;
-                if (count($filteredHistory) >= $limit) {
+                if (count($filteredHistory) >= $limit && ($limit !== null)) {
                     break;
                 }
             }
