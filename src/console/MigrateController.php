@@ -170,4 +170,27 @@ class MigrateController extends BaseMigrateController
 
         return $migrations;
     }
+
+    /**
+     * @inheritdoc
+     */
+    protected function addMigrationHistory($version)
+    {
+        $command = $this->db->createCommand();
+        $time = time();
+        do {
+            $exist = (new Query())
+                ->select(['apply_time'])
+                ->from($this->migrationTable)
+                ->where(['apply_time' => $time])
+                ->exists();
+            sleep(1);
+            $time = time();
+        } while ($exist);
+
+        $command->insert($this->migrationTable, [
+            'version' => $version,
+            'apply_time' => $time,
+        ])->execute();
+    }
 }
