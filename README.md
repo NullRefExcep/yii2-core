@@ -24,6 +24,46 @@ or add
 
 to the require section of your `composer.json` file.
 
+### Config structure
+
+This module designed to work with special config file.
+
+In case when you use `module/install` command it creates `installed_modules.php` file in condif folder if it doesn't exist.
+
+This file will contain config array of installed modules (obviously).
+
+You need to merge this config with your applications config (web, console, etc). 
+
+I recommend using the structure that described below, it used at our [application template](https://github.com/NullRefExcep/yii2-boilerplate).
+
+- installed_modules.php
+```php
+<?php return [];
+```
+- modules.php
+```php
+<?php 
+$config = require(__DIR__ . '/installed_modules.php');
+return array_merge($config, []);
+```
+- web.php
+```php
+<?php
+$modules = require(__DIR__ . '/modules.php');
+$config = [
+//...
+    'modules' => $modules,
+//...
+];
+return $config;
+```
+
+When you are using this config structure you are able to override installed modules cofiguration in `modules.php`.
+
+Also, `modules.php` file could be included to `console.php` config file.
+
+App-specific configs could be added directly in corresponding config file.
+
 ### Modules system
 
 This module provides basic tools for creating system of modules.
