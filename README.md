@@ -76,6 +76,7 @@ Available modules:
  - [product](https://github.com/NullRefExcep/yii2-product)
  - [geo](https://github.com/NullRefExcep/yii2-geo)
  - [blog](https://github.com/NullRefExcep/yii2-blog)
+ - [multisite](https://github.com/NullRefExcep/yii2-multisite)
  
 For full integration, you have to run console command:
 
