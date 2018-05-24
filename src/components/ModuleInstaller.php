@@ -27,18 +27,30 @@ abstract class ModuleInstaller extends Component
     public $runModuleMigrations = false;
     public $updateConfig = true;
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\base\NotSupportedException
+     */
     public function init()
     {
         parent::init();
-        $this->db = Instance::ensure($this->db, Connection::className());
+        $this->db = Instance::ensure($this->db, Connection::class);
         $this->db->getSchema()->refresh();
     }
 
+    /**
+     * @param $action
+     * @return bool
+     */
     public function hasChange($action)
     {
         return ($this->getChange($action) !== null);
     }
 
+    /**
+     * @param $action
+     * @return mixed|null
+     */
     public function getChange($action)
     {
         $changes = $this->getChanges();
@@ -50,6 +62,9 @@ abstract class ModuleInstaller extends Component
         return null;
     }
 
+    /**
+     * @return array|mixed
+     */
     public function getChanges()
     {
         $array = [];
@@ -67,8 +82,14 @@ abstract class ModuleInstaller extends Component
         return \Yii::getAlias('@app/config/changes.php');
     }
 
+    /**
+     * @return mixed
+     */
     public abstract function getModuleId();
 
+    /**
+     *
+     */
     public function install()
     {
         $this->stdout(' Module "' . $this->getModuleId() . '" installing: ' . PHP_EOL, Console::FG_BLUE, Console::NEGATIVE, Console::BOLD);
@@ -221,6 +242,7 @@ abstract class ModuleInstaller extends Component
      *
      * @param $alias
      * @param bool $override
+     * @throws \yii\base\Exception
      */
     protected function createFile($alias, $override = true)
     {

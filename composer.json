@@ -8,7 +8,7 @@
         "yiisoft/yii2": ">=2.0.6",
         "symfony/filesystem": "^3.1",
         "symfony/finder": "^3.1",
-        "voskobovich/yii2-many-many-behavior": ">=3.2.0"
+        "voskobovich/yii2-linker-behavior": "dev-master"
     },
     "autoload": {
         "psr-4": {
@@ -17,5 +17,8 @@
     },
     "extra": {
         "bootstrap":"nullref\\core\\Bootstrap"
+    },
+    "require-dev": {
+        "yiisoft/yii2-gii": "^2.0@dev"
     }
 }

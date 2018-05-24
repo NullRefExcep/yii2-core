@@ -70,7 +70,7 @@ class MigrateController extends BaseMigrateController
      */
     public function getMigrationNamespace($module)
     {
-        $reflection = new \ReflectionClass($module->className());
+        $reflection = new \ReflectionClass($module->class);
         $baseNamespace = $reflection->getNamespaceName() . '\\migrations';
         $namespaces = [$baseNamespace];
 
@@ -95,6 +95,7 @@ class MigrateController extends BaseMigrateController
 
     /**
      * @param string $name
+     * @throws \yii\console\Exception
      */
     public function actionCreate($name)
     {
@@ -126,8 +127,10 @@ class MigrateController extends BaseMigrateController
 
     /**
      * Return migrations only with namespace
-     * @param int $limit
+     *
+     * @param $limit
      * @return array
+     * @throws \yii\db\Exception
      */
     protected function getMigrationHistory($limit)
     {

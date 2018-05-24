@@ -78,7 +78,7 @@ class EntityManager extends Component implements IEntityManager
     public static function getConfig($namespace, $modelName, $config = [])
     {
         $default = [
-            'class' => static::className(),
+            'class' => get_called_class(),
             'model' => $namespace . $modelName,
             'query' => $namespace . $modelName . 'Query',
             'searchModel' => $namespace . $modelName . 'Search',
@@ -88,7 +88,10 @@ class EntityManager extends Component implements IEntityManager
 
     /**
      * @param Model $model
-     * @return void
+     * @return mixed|void
+     * @throws \Exception
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
      */
     public function delete($model)
     {
@@ -175,8 +178,7 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @return object
-     * @throws \yii\base\InvalidConfigException
+     * @return ActiveQuery
      */
     public function createQuery()
     {
@@ -198,7 +200,8 @@ class EntityManager extends Component implements IEntityManager
     }
 
     /**
-     * @return mixed
+     * @return object
+     * @throws InvalidConfigException
      */
     public function createSearchModel()
     {

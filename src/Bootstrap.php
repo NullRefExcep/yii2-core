@@ -41,7 +41,7 @@ class Bootstrap implements BootstrapInterface
             ];
         }
         if (YII_ENV_DEV && class_exists('yii\gii\Module')) {
-            Event::on(Gii::className(), Gii::EVENT_BEFORE_ACTION, function (Event $event) {
+            Event::on(Gii::class, Gii::EVENT_BEFORE_ACTION, function (Event $event) {
                 /** @var Gii $gii */
                 $gii = $event->sender;
                 $gii->generators['relation-migration'] = [

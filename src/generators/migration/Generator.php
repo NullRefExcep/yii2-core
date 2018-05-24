@@ -80,7 +80,7 @@ class Generator extends BaseGenerator
         $class = $this->{$attribute};
         try {
             $reflection = new \ReflectionClass($class);
-            if (!$reflection->isSubclassOf(ActiveRecord::className())) {
+            if (!$reflection->isSubclassOf(ActiveRecord::class)) {
                 $this->addError($attribute, 'Class must be model');
             }
         } catch (\Exception $e) {

@@ -3,7 +3,7 @@
 namespace nullref\core\behaviors;
 
 use nullref\core\traits\EntityManageble;
-use voskobovich\behaviors\ManyToManyBehavior;
+use voskobovich\linker\LinkerBehavior;
 use yii\db\ActiveRecord;
 
 /**
@@ -47,7 +47,7 @@ class ManyHasManyRelation extends HasRelation
     public function attach($owner)
     {
         $owner->attachBehavior($this->getRelationName(), [
-            'class' => ManyToManyBehavior::className(),
+            'class' => LinkerBehavior::class,
             'relations' => [
                 $this->getAttributeName() => $this->getRelationName(),
             ],

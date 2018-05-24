@@ -50,6 +50,8 @@ class LanguageManager extends Component implements ILanguageManager
 
     /**
      * Try to read language from session and cookies
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     public function init()
     {
@@ -68,7 +70,7 @@ class LanguageManager extends Component implements ILanguageManager
         $selectedLanguage = null;
         foreach ($this->languages as $config) {
             if (is_array($config) && !isset($config['class'])) {
-                $config['class'] = Language::className();
+                $config['class'] = Language::class;
             }
             /** @var ILanguage $language */
             $language = \Yii::createObject($config);

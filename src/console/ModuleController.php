@@ -17,6 +17,9 @@ class ModuleController extends Controller
 {
     public $db = 'db';
 
+    /**
+     *
+     */
     public function actionIndex()
     {
         $this->run('/help', ['module']);
@@ -24,13 +27,21 @@ class ModuleController extends Controller
 
     /**
      * Run installation
+     *
      * @param $name
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionInstall($name)
     {
         $this->runInstallerCommand($name, 'install', 'Module module was installed successfully.');
     }
 
+    /**
+     * @param $name
+     * @param $method
+     * @param string $message
+     * @throws \yii\base\InvalidConfigException
+     */
     protected function runInstallerCommand($name, $method, $message = '')
     {
         if ($this->moduleExists($name)) {
@@ -90,6 +101,9 @@ class ModuleController extends Controller
         }
     }
 
+    /**
+     *
+     */
     public function actionMigrate()
     {
         $changes = $this->getChanges();
@@ -99,16 +113,21 @@ class ModuleController extends Controller
         Console::output('Migrate successfully.');
     }
 
+    /**
+     * @return array|mixed
+     * @throws \yii\base\InvalidConfigException
+     */
     protected function getChanges()
     {
         /** @var Installer $installer */
-        $installer = \Yii::createObject(Installer::className(), ['db' => $this->db]);
+        $installer = \Yii::createObject(Installer::class, ['db' => $this->db]);
 
         return $installer->getChanges();
     }
 
     /**
      * @param $name
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionUninstall($name)
     {
@@ -130,6 +149,7 @@ class ModuleController extends Controller
 
     /**
      * @param $name
+     * @throws \yii\base\InvalidConfigException
      */
     public function actionReinstall($name)
     {
@@ -146,7 +166,7 @@ class ModuleController extends Controller
         $model2 = new $modelName2();
 
         if ($this->confirm('Generate migration?')) {
-
+            //@TODO
         }
     }
 } 
