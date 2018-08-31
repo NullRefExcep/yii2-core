@@ -70,7 +70,7 @@ class MigrateController extends BaseMigrateController
      */
     public function getMigrationNamespace($module)
     {
-        $reflection = new \ReflectionClass($module->class);
+        $reflection = new \ReflectionClass(get_class($module));
         $baseNamespace = $reflection->getNamespaceName() . '\\migrations';
         $namespaces = [$baseNamespace];
 
