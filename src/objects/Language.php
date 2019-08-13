@@ -8,13 +8,13 @@
 namespace nullref\core\objects;
 
 use nullref\core\interfaces\ILanguage;
-use yii\base\Object;
+use yii\base\BaseObject;
 
 /**
  * Class Language
  * @package nullref\core\objects
  */
-class Language extends Object implements ILanguage
+class Language extends BaseObject implements ILanguage
 {
     protected $_title;
     protected $_id;
