@@ -104,6 +104,26 @@ class LanguageManager extends Component implements ILanguageManager
         return $this->_language;
     }
 
+    public function getSlugMap()
+    {
+        $map = [];
+        foreach ($this->languages as $language) {
+            $map[$language->getId()] = $language->getSlug();
+        }
+
+        return $map;
+    }
+
+    public function getMap()
+    {
+        $map = [];
+        foreach ($this->languages as $language) {
+            $map[$language->getId()] = $language->getTitle();
+        }
+
+        return $map;
+    }
+
     /**
      * @param ILanguage $language
      */

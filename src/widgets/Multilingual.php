@@ -7,27 +7,25 @@ namespace nullref\core\widgets;
 
 use nullref\core\interfaces\ILanguageManager;
 use Yii;
+use yii\base\Model;
 use yii\base\Widget;
 
 class Multilingual extends Widget
 {
+    /** @var \Closure */
     public $tab;
+    /** @var Model */
     public $model;
-    public $languages = null;
-
-    /**
-     * @var MultilingualForm
-     */
+    /** @var MultilingualForm */
     public $form;
+
+    /** @var ILanguageManager */
+    private $languageManager;
 
     public function init()
     {
         parent::init();
-        if (!count($this->languages)) {
-            /** @var ILanguageManager $languageManager */
-            $languageManager = Yii::$app->get('languageManager');
-            $this->languages = $languageManager->getLanguages();
-        }
+        $this->languageManager = Yii::$app->get('languageManager');
     }
 
 
@@ -50,7 +48,7 @@ JS
             'form' => $form,
             'tab' => $this->tab,
             'model' => $this->model,
-            'languages' => $this->languages,
+            'languageManager' => $this->languageManager,
         ]);
     }
 }

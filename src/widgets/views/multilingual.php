@@ -4,8 +4,8 @@
  * @var $form \nullref\core\widgets\MultilingualForm
  * @var $model \yii\base\Model
  * @var $tab Closure
+ * @var $languageManager \nullref\core\interfaces\ILanguageManager
  */
-use app\helpers\Languages;
 
 ?>
 <style>
@@ -22,17 +22,17 @@ use app\helpers\Languages;
 <div class="multilingual">
     <ul class="nav nav-tabs">
         <?php $first = true;
-        foreach (Languages::getSlugMap() as $key => $lang): ?>
+        foreach ($languageManager->getSlugMap() as $key => $lang): ?>
             <li class="<?= ($first) ? 'active' : '' ?>">
                 <a data-toggle="tab" href="#<?= $lang ?>">
-                    <?= Yii::t('translation', Languages::getMap()[$key]) ?>
+                    <?= Yii::t('translation', $languageManager->getMap()[$key]) ?>
                 </a>
             </li>
             <?php $first = false; endforeach ?>
     </ul>
     <div class="tab-content multilingual-tab-content" style="padding: 10px 5px">
         <?php $first = true;
-        foreach (Languages::getSlugMap() as $key => $lang): ?>
+        foreach ($languageManager->getSlugMap() as $key => $lang): ?>
             <div id="<?= $lang ?>" class="tab-pane <?= ($first) ? 'active' : '' ?>">
                 <?php $form->language = $lang ?>
                 <?= call_user_func($tab, $form, $model) ?>

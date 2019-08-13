@@ -28,4 +28,14 @@ interface ILanguageManager
      * @param ILanguage $language
      */
     public function setLanguage(ILanguage $language);
+
+    /**
+     * @return array
+     */
+    public function getSlugMap();
+
+    /**
+     * @return array
+     */
+    public function getMap();
 }
