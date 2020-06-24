@@ -18,6 +18,12 @@
     "extra": {
         "bootstrap":"nullref\\core\\Bootstrap"
     },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
     "require-dev": {
         "yiisoft/yii2-gii": "^2.0@dev"
     }
