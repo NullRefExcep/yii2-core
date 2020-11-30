@@ -3,6 +3,7 @@
  * @author    Dmytro Karpovych
  * @copyright 2017 NRE
  */
+
 namespace nullref\core\widgets;
 
 
@@ -21,6 +22,7 @@ class ActiveRangeInputGroup extends Widget
 
     public $attributeTo;
 
+    public $inputBuilder;
     /**
      * @var array the HTML attributes for the input tag.
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
@@ -29,15 +31,23 @@ class ActiveRangeInputGroup extends Widget
         'class' => 'form-control',
         'style' => 'width: 50%;',
     ];
-
     public $options = [];
+
+    public function init()
+    {
+        parent::init();
+        if ($this->inputBuilder === null) {
+            $this->inputBuilder = function ($model, $attribute, $inputOptions) {
+                return Html::activeTextInput($model, $attribute, $inputOptions);
+            };
+        }
+    }
 
     public function run()
     {
         return Html::tag('div',
-            Html::activeTextInput($this->model, $this->attributeFrom, $this->inputOptions) .
-            Html::activeTextInput($this->model, $this->attributeTo, $this->inputOptions),
+            call_user_func_array($this->inputBuilder, [$this->model, $this->attributeFrom, $this->inputOptions]) .
+            call_user_func_array($this->inputBuilder, [$this->model, $this->attributeTo, $this->inputOptions]),
             array_merge(['class' => 'input-group'], $this->options));
-
     }
 }
